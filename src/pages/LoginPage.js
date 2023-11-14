@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import magicLogo from '../images/magicLogo.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [formError, setFormError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -26,6 +30,18 @@ const LoginPage = () => {
 
   const handleConfirmPasswordChange = (e) => {
     setConfirmPassword(e.target.value);
+  };
+
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
+
+  const handleAddressChange = (e) => {
+    setAddress(e.target.value);
+  };
+
+  const handlePhoneNumberChange = (e) => {
+    setPhoneNumber(e.target.value);
   };
 
   const handleRegisterClick = () => {
@@ -45,7 +61,15 @@ const LoginPage = () => {
 
   const handleRegisterFormSubmit = (e) => {
     e.preventDefault();
-    if (emailError || !email || !password || password !== confirmPassword) {
+    if (
+      emailError ||
+      !email ||
+      !password ||
+      password !== confirmPassword ||
+      !name ||
+      !address ||
+      !phoneNumber
+    ) {
       setFormError("Vui lòng kiểm tra thông tin đăng ký");
     } else {
       // Xử lý đăng ký tại đây
@@ -67,9 +91,9 @@ const LoginPage = () => {
         elevation={3}
         style={{
           padding: "20px",
-          height: "50%",
-          maxWidth: "700px",
-          margin: "0 auto"
+          height: "70%",
+          maxWidth: "900px",
+          margin: "0 auto",
         }}
       >
         <Grid container>
@@ -77,11 +101,12 @@ const LoginPage = () => {
             item
             xs={6}
             style={{
-              backgroundImage: `url(${process.env.PUBLIC_URL}/magicLogo.png)`,
-              backgroundSize: "cover"
+              backgroundImage: `url(${magicLogo})`,
+              backgroundSize: "cover",
+              paddingRight : "10px"
             }}
           ></Grid>
-          <Grid item xs={6} style={{paddingTop : '30px'}}>
+          <Grid item xs={6} style={{ paddingTop: '30px' }}>
             <div style={{ padding: "16px" }}>
               <form
                 onSubmit={
@@ -108,14 +133,29 @@ const LoginPage = () => {
                   onChange={handlePasswordChange}
                 />
                 {isRegistering && (
-                  <TextField
-                    style={{ marginBottom: "10px" }}
-                    label="Xác nhận mật khẩu"
-                    type="password"
-                    fullWidth
-                    value={confirmPassword}
-                    onChange={handleConfirmPasswordChange}
-                  />
+                  <>
+                    <TextField
+                      style={{ marginBottom: "10px", width: "100%" }}
+                      label="Họ và tên"
+                      fullWidth
+                      value={name}
+                      onChange={handleNameChange}
+                    />
+                    <TextField
+                      style={{ marginBottom: "10px", width: "100%" }}
+                      label="Địa chỉ"
+                      fullWidth
+                      value={address}
+                      onChange={handleAddressChange}
+                    />
+                    <TextField
+                      style={{ marginBottom: "10px", width: "100%" }}
+                      label="Số điện thoại"
+                      fullWidth
+                      value={phoneNumber}
+                      onChange={handlePhoneNumberChange}
+                    />
+                  </>
                 )}
                 <Button
                   variant="contained"
