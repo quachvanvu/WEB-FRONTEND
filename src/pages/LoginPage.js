@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import magicLogo from '../images/magicLogo.png';
+import axios from 'axios';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ const LoginPage = () => {
   const [emailError, setEmailError] = useState(false);
   const [formError, setFormError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+ 
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -48,32 +50,95 @@ const LoginPage = () => {
     setIsRegistering(true);
   };
 
-  const handleLoginFormSubmit = (e) => {
+  const handleLoginFormSubmit =async (e) => {
     e.preventDefault();
+    const registeredUser = JSON.parse(localStorage.getItem('registeredUser'));
     if (emailError) {
       setFormError("Email không hợp lệ");
     } else if (email && password) {
-      setFormError("");
+      //setFormError("");
+      try {
+        
+        const response = await axios.post('http://localhost:1406/v1/auth/login', {
+          email: email,
+          password: password});
+        
+        const token = response.data.accessToken; 
+        localStorage.setItem('accessToken', token);
+
+        setFormError("Đăng nhập thành công");
+        //console.log(response.data);
+        window.location.href = '/customer'; 
+      } catch (error) {
+        console.error(error);
+        setFormError("Đăng nhập thất bại");
+      }
     } else {
       setFormError("Vui lòng nhập đầy đủ thông tin");
     }
   };
 
-  const handleRegisterFormSubmit = (e) => {
+  const handleRegisterFormSubmit =async (e) => {
     e.preventDefault();
     if (
       emailError ||
       !email ||
       !password ||
-      password !== confirmPassword ||
       !name ||
       !address ||
       !phoneNumber
     ) {
       setFormError("Vui lòng kiểm tra thông tin đăng ký");
     } else {
-      // Xử lý đăng ký tại đây
-      setFormError("");
+ try {
+      
+      const response = await axios.post('http://localhost:1406/v1/auth/register', {
+        email,
+        password,
+        name,
+        address,
+        phoneNumber,
+        role: "user"
+      });
+    
+ // Hiển thị thông báo đăng ký thành công
+ console.log("Dữ liệu đăng ký đã được gửi thành công:", response.data);
+ setFormError(response.data.message);
+
+
+ setFormError("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
+ const token = response.data.accessToken;
+      localStorage.setItem('accessToken', token);
+
+      localStorage.setItem('registeredUser', JSON.stringify({
+        email,
+        name,
+        address,
+        phoneNumber,
+      }));
+
+ localStorage.setItem('registeredUser', JSON.stringify({
+  email,
+        name,
+        address,
+        phoneNumber,
+}));
+
+ // Reset các trường nhập liệu
+ setEmail("");
+ setPassword("");
+ //setConfirmPassword("");
+ setName("");
+ setAddress("");
+ setPhoneNumber("");
+ setEmailError(false);
+ setIsRegistering(false); // Đặt lại trạng thái đăng ký
+
+    } catch (error) {
+      console.error(error);
+      setFormError("Đăng ký thất bại");
+    }
+      
     }
   };
 

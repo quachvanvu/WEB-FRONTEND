@@ -1,29 +1,45 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Button, Menu, MenuItem, ListItemIcon, ListItemText, Box, Grid } from '@mui/material';
-import { Home, AccountCircle, Assessment, Settings, Storage, Group, Gavel, ExitToApp, Opacity  } from '@mui/icons-material';
-
-
+import React, { useState, useEffect } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Box,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import {
+  Home,
+  AccountCircle,
+  Assessment,
+  Settings,
+  Storage,
+  Delete as DeleteIcon,
+  ExitToApp,
+} from '@mui/icons-material';
 
 function Boss() {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [systemAnchorEl, setSystemAnchorEl] = React.useState(null);
-  const [accountAnchorEl, setAccountAnchorEl] = React.useState(null);
-  const [statsAnchorEl, setStatsAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [accountAnchorEl, setAccountAnchorEl] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [showTable, setShowTable] = useState(false); // Thêm state mới
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleSystemMenuOpen = (event) => {
-    setSystemAnchorEl(event.currentTarget);
-  };
-
   const handleAccountMenuOpen = (event) => {
     setAccountAnchorEl(event.currentTarget);
-  };
-
-  const handleStatsMenuOpen = (event) => {
-    setStatsAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
@@ -31,17 +47,55 @@ function Boss() {
   };
 
   const handleSubMenuClose = () => {
-    setSystemAnchorEl(null);
     setAccountAnchorEl(null);
-    setStatsAnchorEl(null);
   };
+
   const handleLogout = () => {
     window.location.href = '/';
   };
+
+  useEffect(() => {
+    if (accountAnchorEl) {
+      fetch('http://localhost:1406/v1/boss/manage')
+        .then((response) => response.json())
+        .then((data) => {
+          const filteredAccounts = data.filter(
+            (account) =>
+              account.role === 'tran_manager' || account.role === 'gather_manager'
+          );
+          setAccounts(filteredAccounts);
+          setShowTable(true); // Khi có dữ liệu, hiển thị bảng
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+          setShowTable(false); // Nếu có lỗi, ẩn bảng
+        });
+    }
+  }, [accountAnchorEl]);
+
+  const handleDeleteAccount = (accountId) => {
+      fetch(`http://localhost:1406/v1/boss/manage/${accountId}`, {
+        method: 'DELETE',
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Xóa tài khoản khỏi danh sách accounts
+          const updatedAccounts = accounts.filter((account) => account._id !== accountId);
+          setAccounts(updatedAccounts);
+        })
+        .catch((error) => {
+          console.error('Lỗi khi xóa tài khoản:', error);
+        });
+  };
+
   return (
     <div>
-      <AppBar position="static" 
-      style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}
+      <AppBar
+        position="static"
+        style={{
+          backgroundColor: '#2196f3',
+          boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+        }}
       >
         <Toolbar>
           <IconButton color="inherit">
@@ -64,103 +118,118 @@ function Boss() {
               </ListItemIcon>
               <ListItemText primary="Lãnh đạo công ty" />
             </MenuItem>
+            <MenuItem onClick={handleAccountMenuOpen}>
+              <ListItemIcon>
+                <Storage />
+              </ListItemIcon>
+              <ListItemText primary="Quản lý tài khoản" />
+            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
 
-      <Grid container style={{ height : '91vh'}}>
-        <Grid item xs={3} style={{ 
-            backgroundColor: '#1e88e5', 
-            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)', padding: '10px' }}
-            >
-        <nav>
-          <ul>
-            <li>
-              <Button startIcon={<Settings />} onClick={handleSystemMenuOpen}
-               style={{ color : '#fff', paddingTop : '30px'}}
-               >
-                Quản lý hệ thống
-              </Button>
-              <Menu
-                anchorEl={systemAnchorEl}
-                open={Boolean(systemAnchorEl)}
-                onClose={handleSubMenuClose}
-              >
-                <MenuItem>
-                  <ListItemIcon>
-                    <Gavel />
-                  </ListItemIcon>
-                  <ListItemText primary="Điểm giao dịch" />
-                </MenuItem>
-                <MenuItem>
-                  <ListItemIcon>
-                    <Storage />
-                  </ListItemIcon>
-                  <ListItemText primary="Điểm tập kết" />
-                </MenuItem>
-              </Menu>
-            </li>
-            <li>
-              <Button startIcon={<AccountCircle />} onClick={handleAccountMenuOpen} 
-                style={{ color : '#fff', paddingTop : '30px'}}
+      <Grid container style={{ height: '91vh' }}>
+        <Grid
+          item
+          xs={3}
+          style={{
+            backgroundColor: '#1e88e5',
+            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+            padding: '10px',
+          }}
+        >
+          <nav>
+            <ul>
+              <li>
+                <Button
+                  startIcon={<Settings />}
+                  onClick={handleMenuClose}
+                  style={{ color: '#fff', paddingTop: '30px' }}
                 >
-                Quản lý tài khoản
-              </Button>
-              <Menu
-                anchorEl={accountAnchorEl}
-                open={Boolean(accountAnchorEl)}
-                onClose={handleSubMenuClose}
-              >
-                <MenuItem>
-                  <ListItemIcon>
-                    <Storage />
-                  </ListItemIcon>
-                  <ListItemText primary="Trưởng điểm tập kết" />
-                </MenuItem>
-                <MenuItem>
-                  <ListItemIcon>
-                    <Gavel />
-                  </ListItemIcon>
-                  <ListItemText primary="Trưởng điểm giao dịch" />
-                </MenuItem>
-              </Menu>
-            </li>
-            <li>
-              <Button startIcon={<Assessment />} onClick={handleStatsMenuOpen}
-              style={{ color : '#fff', paddingTop : '30px'}}
-              >
-                Thống kê
-              </Button>
-              <Menu
-                anchorEl={statsAnchorEl}
-                open={Boolean(statsAnchorEl)}
-                onClose={handleSubMenuClose}
-              >
-                <MenuItem>
-                  <ListItemIcon>
-                    <Storage />
-                  </ListItemIcon>
-                  <ListItemText primary="Hàng gửi" />
-                </MenuItem>
-                <MenuItem>
-                  <ListItemIcon>
-                    <Gavel />
-                  </ListItemIcon>
-                  <ListItemText primary="Hàng nhận" />
-                </MenuItem>
-              </Menu>
-            </li>
-            <li>
-            <Button startIcon={<ExitToApp />} onClick={handleLogout} 
-            style={{ color : '#fff', paddingTop : '30px', marginTop : '380px'}}
-            >
-            Đăng xuất
-          </Button>
-            </li>
-          </ul>
-        </nav>
+                  Quản lý hệ thống
+                </Button>
+              </li>
+              <li>
+                <Button
+                  startIcon={<AccountCircle />}
+                  onClick={handleAccountMenuOpen}
+                  style={{ color: '#fff', paddingTop: '30px' }}
+                >
+                  Quản lý tài khoản
+                </Button>
+              </li>
+              <li>
+                <Button
+                  startIcon={<Assessment />}
+                  onClick={handleMenuClose}
+                  style={{ color: '#fff', paddingTop: '30px' }}
+                >
+                  Thống kê
+                </Button>
+              </li>
+              <li>
+                <Button
+                  startIcon={<ExitToApp />}
+                  onClick={handleLogout}
+                  style={{
+                    color: '#fff',
+                    paddingTop: '30px',
+                    marginTop: '380px',
+                  }}
+                >
+                  Đăng xuất
+                </Button>
+              </li>
+            </ul>
+          </nav>
         </Grid>
+
+        <Grid 
+          item 
+            xs={9}
+            style={{
+              padding: '10px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+        >
+          {showTable && ( // Chỉ hiển thị bảng nếu showTable là true
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Tên</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Email</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Chức năng</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Thao tác</b></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {accounts.map((account) => (
+                    <TableRow key={account._id}>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.name}</TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
+                        {account.role === 'tran_manager'
+                          ? 'Nhân viên điểm giao dịch'
+                          : account.role === 'gather_manager'
+                          ? 'Nhân viên điểm tập kết'
+                          : ''}
+                      </TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
+                        <IconButton color="secondary" onClick={() => handleDeleteAccount(account._id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Grid>
+      </Grid>
     </div>
   );
 }
