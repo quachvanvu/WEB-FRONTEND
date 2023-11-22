@@ -20,6 +20,7 @@ import {
   TextField,
 } from '@mui/material';
 import { Home, AccountCircle, Assessment, ExitToApp, Add } from '@mui/icons-material';
+import axios from 'axios';
 
 function Gathering() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -59,14 +60,15 @@ function Gathering() {
 
   const fetchAccountsFromAPI = async () => {
     try {
-      const response = await fetch('http://localhost:1406/v1/boss/manage');
-      if (response.ok) {
-        const data = await response.json();
-        const filteredAccounts = data.filter(account => account.role === 'gather_employee');
-        setAccounts(filteredAccounts.slice(0, 4));
-      } else {
-        console.error('Lỗi khi lấy danh sách tài khoản:', response.statusText);
-      }
+      await axios.get('http://localhost:1406/v1/boss/manage')
+        .then(data => {
+          if(data.data) {
+            const filteredAccounts = data.data.filter(account => account.role === 'gather_employee');
+            setAccounts(filteredAccounts.slice(0, 4));
+          } else {
+            console.error('Lỗi khi lấy danh sách tài khoản:', data.message);
+          } 
+        })
     } catch (error) {
       console.error('Lỗi khi lấy danh sách tài khoản:', error.message);
     }
@@ -77,27 +79,17 @@ function Gathering() {
   }, []);
 
   const handleAddAccount = async () => {
-    const requestData = {
-      name: newAccount.name,
-      email: newAccount.email,
-      password: newAccount.password,
-      role: "gather_employee",
-    };
-
     try {
-      const response = await fetch('http://localhost:1406/v1/gaManager/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (response.ok) {
-        console.log('Thêm tài khoản thành công');
-      } else {
-        console.error('Lỗi khi thêm tài khoản:', response.statusText);
-      }
+      await axios.post('http://localhost:1406/v1/gaManager/register', {
+        name: newAccount.name,
+        email: newAccount.email,
+        password: newAccount.password,
+        role: "gather_employee"
+      })
+        .then(data => {
+         console.log('Thêm tài khoản thành công', data.data)
+        })
+        .catch(error =>  console.error('Lỗi khi thêm tài khoản:', error.statusText) )
     } catch (error) {
       console.error('Lỗi khi thêm tài khoản:', error.message);
     }
@@ -109,15 +101,9 @@ function Gathering() {
   const handleDeleteAccount = async (index, accountId) => {
     try {
       // Gửi yêu cầu xóa đến API
-      const response = await fetch(`http://localhost:1406/v1/gaManager/manage/${accountId}`, {
-        method: 'DELETE',
-      });
-  
-      if (response.ok) {
-        console.log('Xóa tài khoản thành công');
-      } else {
-        console.error('Lỗi khi xóa tài khoản:', response.statusText);
-      }
+     await axios.delete(`http://localhost:1406/v1/gaManager/manage/${accountId}`)
+      .then( data => console.log('Xóa tài khoản thành công', data.data))
+      .catch(err => console.error(err))
     } catch (error) {
       console.error('Lỗi khi xóa tài khoản:', error.message);
     }

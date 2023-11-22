@@ -27,6 +27,7 @@ import {
   Delete as DeleteIcon,
   ExitToApp,
 } from '@mui/icons-material';
+import axios from 'axios';
 
 function Boss() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -56,10 +57,9 @@ function Boss() {
 
   useEffect(() => {
     if (accountAnchorEl) {
-      fetch('http://localhost:1406/v1/boss/manage')
-        .then((response) => response.json())
+      axios.get('http://localhost:1406/v1/boss/manage')
         .then((data) => {
-          const filteredAccounts = data.filter(
+          const filteredAccounts = data.data.filter(
             (account) =>
               account.role === 'tran_manager' || account.role === 'gather_manager'
           );
@@ -74,11 +74,8 @@ function Boss() {
   }, [accountAnchorEl]);
 
   const handleDeleteAccount = (accountId) => {
-      fetch(`http://localhost:1406/v1/boss/manage/${accountId}`, {
-        method: 'DELETE',
-      })
-        .then((response) => response.json())
-        .then((data) => {
+      axios.delete(`http://localhost:1406/v1/boss/manage/${accountId}`)
+        .then(() => {
           // Xóa tài khoản khỏi danh sách accounts
           const updatedAccounts = accounts.filter((account) => account._id !== accountId);
           setAccounts(updatedAccounts);
