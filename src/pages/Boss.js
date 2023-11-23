@@ -118,12 +118,6 @@ function Boss() {
               </ListItemIcon>
               <ListItemText primary="Lãnh đạo công ty" />
             </MenuItem>
-            <MenuItem onClick={handleAccountMenuOpen}>
-              <ListItemIcon>
-                <Storage />
-              </ListItemIcon>
-              <ListItemText primary="Quản lý tài khoản" />
-            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
@@ -211,9 +205,9 @@ function Boss() {
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
                         {account.role === 'tran_manager'
-                          ? 'Nhân viên điểm giao dịch'
+                          ? 'Trưởng điểm giao dịch'
                           : account.role === 'gather_manager'
-                          ? 'Nhân viên điểm tập kết'
+                          ? 'Trưởng điểm tập kết'
                           : ''}
                       </TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
