@@ -62,6 +62,7 @@ const LoginPage = () => {
         const response = await axios.post('http://localhost:1406/v1/auth/login', {
           email: email,
           password: password});
+        console.log(response.data)
         
         const token = response.data.accessToken; 
         localStorage.setItem('accessToken', token);
