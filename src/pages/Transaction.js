@@ -48,6 +48,7 @@ function Transaction() {
   const handleLogout = () => {
     window.localStorage.removeItem('accessToken');
     window.localStorage.removeItem('refreshToken');
+    window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
 
