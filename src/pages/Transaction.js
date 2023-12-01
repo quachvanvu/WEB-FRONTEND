@@ -24,6 +24,15 @@ function Transaction() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
 
+  const accessToken = window.localStorage.getItem('accessToken');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'AccessToken': accessToken,
+  };
+
+  const userRole = window.localStorage.getItem('userRole');
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -37,6 +46,9 @@ function Transaction() {
   };
   
   const handleLogout = () => {
+    window.localStorage.removeItem('accessToken');
+    window.localStorage.removeItem('refreshToken');
+    window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
 
@@ -45,7 +57,7 @@ function Transaction() {
 
   const fetchAccountsFromAPI = async () => {
     try {
-      const response = await fetch('http://localhost:1406/v1/boss/manage');
+      const response = await fetch('http://localhost:1406/v1/boss/manage', { headers});
       if (response.ok) {
         const data = await response.json();
         const filteredAccounts = data.filter(account => account.role === 'tran_employee');
@@ -77,7 +89,7 @@ function Transaction() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
-      });
+      }, { headers });
 
       if (response.ok) {
         console.log('Thêm tài khoản thành công');
@@ -97,7 +109,7 @@ function Transaction() {
       // Gửi yêu cầu xóa đến API
       const response = await fetch(`http://localhost:1406/v1/traManager/manage/${accountId}`, {
         method: 'DELETE',
-      });
+      }, {  headers });
   
       if (response.ok) {
         console.log('Xóa tài khoản thành công');
@@ -115,140 +127,144 @@ function Transaction() {
   };
   
 
-  return (
-    <div>
-      <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
-        <Toolbar>
-          <IconButton color="inherit">
-            <Home />
-          </IconButton>
-          <Typography variant="h6">Trang chủ</Typography>
-          <div style={{ flexGrow: 1 }} />
-          <IconButton color="inherit" onClick={handleMenuOpen}>
-            <AccountCircle />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            keepMounted
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleMenuClose}>
-              <ListItemText primary="Trưởng điểm giao dịch" />
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
-
-      <Grid container style={{ height: '91vh' }}>
-        <Grid
-          item
-          xs={3}
-          style={{
-            backgroundColor: '#1e88e5',
-            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
-            padding: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <nav>
-            <ul>
-              <li>
-                <Button
-                  startIcon={<AccountCircle />}
-                  onClick={handleAccountMenuOpen}
-                  style={{ color: '#fff', paddingTop: '30px' }}
-                >
-                  Cấp tài khoản
-                </Button>
-              </li>
-              <li>
-                <Button startIcon={<Assessment />} style={{ color: '#fff', paddingTop: '30px' }}>
-                  Thống kê
-                </Button>
-              </li>
-              <li>
-                <Button
-                  startIcon={<ExitToApp />}
-                  onClick={handleLogout}
-                  style={{ color: '#fff', paddingTop: '30px', marginTop: 'auto' }}
-                >
-                  Đăng xuất
-                </Button>
-              </li>
-            </ul>
-          </nav>
-        </Grid>
-
-        {Boolean(accountAnchorEl) && (
+  if (userRole === 'transaction') {
+    return (
+      <div>
+        <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
+          <Toolbar>
+            <IconButton color="inherit">
+              <Home />
+            </IconButton>
+            <Typography variant="h6">Trang chủ</Typography>
+            <div style={{ flexGrow: 1 }} />
+            <IconButton color="inherit" onClick={handleMenuOpen}>
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleMenuClose}>
+                <ListItemText primary="Trưởng điểm giao dịch" />
+              </MenuItem>
+            </Menu>
+          </Toolbar>
+        </AppBar>
+  
+        <Grid container style={{ height: '91vh' }}>
           <Grid
             item
-            xs={9}
+            xs={3}
             style={{
+              backgroundColor: '#1e88e5',
+              boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
               padding: '10px',
               display: 'flex',
               flexDirection: 'column',
             }}
           >
-            <Box>
-              <TableContainer>
-                <Table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                  <TableHead>
-                    <TableRow>
-                    <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Tên</b></TableCell>
-                    <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Email</b></TableCell>
-                    <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Hành động</b></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {accounts.map((account, index) => (
-                      <TableRow key={index}>
-                        <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.name}</TableCell>
-                        <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
-                        <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
-                          <Button onClick={() => handleDeleteAccount(index, account._id)}>Xóa</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Box mt={2} style={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h6" gutterBottom>
-                  Thêm Tài Khoản
-                </Typography>
-                <TextField
-                  label="Tên"
-                  value={newAccount.name}
-                  onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
-                />
-                <TextField
-                  label="Email"
-                  value={newAccount.email}
-                  onChange={(e) => setNewAccount({ ...newAccount, email: e.target.value })}
-                />
-                <TextField
-                  label="Mật khẩu"
-                  value={newAccount.password}
-                  onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<Add />}
-                  onClick={handleAddAccount}
-                  style={{ marginTop: '10px' }}
-                >
-                  Thêm
-                </Button>
-              </Box>
-            </Box>
+            <nav>
+              <ul>
+                <li>
+                  <Button
+                    startIcon={<AccountCircle />}
+                    onClick={handleAccountMenuOpen}
+                    style={{ color: '#fff', paddingTop: '30px' }}
+                  >
+                    Cấp tài khoản
+                  </Button>
+                </li>
+                <li>
+                  <Button startIcon={<Assessment />} style={{ color: '#fff', paddingTop: '30px' }}>
+                    Thống kê
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    startIcon={<ExitToApp />}
+                    onClick={handleLogout}
+                    style={{ color: '#fff', paddingTop: '30px', marginTop: 'auto' }}
+                  >
+                    Đăng xuất
+                  </Button>
+                </li>
+              </ul>
+            </nav>
           </Grid>
-        )}
-      </Grid>
-    </div>
-  );
+  
+          {Boolean(accountAnchorEl) && (
+            <Grid
+              item
+              xs={9}
+              style={{
+                padding: '10px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Box>
+                <TableContainer>
+                  <Table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <TableHead>
+                      <TableRow>
+                      <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Tên</b></TableCell>
+                      <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Email</b></TableCell>
+                      <TableCell style={{ border: '1px solid #2d73eb', padding: '8px' }}><b>Hành động</b></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {accounts.map((account, index) => (
+                        <TableRow key={index}>
+                          <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.name}</TableCell>
+                          <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
+                          <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
+                            <Button onClick={() => handleDeleteAccount(index, account._id)}>Xóa</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Box mt={2} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h6" gutterBottom>
+                    Thêm Tài Khoản
+                  </Typography>
+                  <TextField
+                    label="Tên"
+                    value={newAccount.name}
+                    onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
+                  />
+                  <TextField
+                    label="Email"
+                    value={newAccount.email}
+                    onChange={(e) => setNewAccount({ ...newAccount, email: e.target.value })}
+                  />
+                  <TextField
+                    label="Mật khẩu"
+                    value={newAccount.password}
+                    onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Add />}
+                    onClick={handleAddAccount}
+                    style={{ marginTop: '10px' }}
+                  >
+                    Thêm
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
+          )}
+        </Grid>
+      </div>
+    );
+  } else {
+    return <div>You are not allow to this action</div>
+  }
 }
 
 export default Transaction;

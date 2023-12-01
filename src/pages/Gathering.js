@@ -27,6 +27,15 @@ function Gathering() {
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
   const [statisticAnchorEl, setStatisticAnchorEl] = useState(null); // State mới cho menu "Thống kê"
 
+  const accessToken = window.localStorage.getItem('accessToken');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'AccessToken': accessToken,
+  };
+
+  const userRole = window.localStorage.getItem('userRole');
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -52,6 +61,9 @@ function Gathering() {
   };
 
   const handleLogout = () => {
+    window.localStorage.removeItem('accessToken');
+    window.localStorage.removeItem('refreshToken');
+    window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
 
@@ -60,7 +72,7 @@ function Gathering() {
 
   const fetchAccountsFromAPI = async () => {
     try {
-      await axios.get('http://localhost:1406/v1/boss/manage')
+      await axios.get('http://localhost:1406/v1/boss/manage', { headers })
         .then(data => {
           if(data.data) {
             const filteredAccounts = data.data.filter(account => account.role === 'gather_employee');
@@ -85,7 +97,7 @@ function Gathering() {
         email: newAccount.email,
         password: newAccount.password,
         role: "gather_employee"
-      })
+      }, { headers })
         .then(data => {
          console.log('Thêm tài khoản thành công', data.data)
         })
@@ -101,7 +113,7 @@ function Gathering() {
   const handleDeleteAccount = async (index, accountId) => {
     try {
       // Gửi yêu cầu xóa đến API
-     await axios.delete(`http://localhost:1406/v1/gaManager/manage/${accountId}`)
+     await axios.delete(`http://localhost:1406/v1/gaManager/manage/${accountId}`, { headers })
       .then( data => console.log('Xóa tài khoản thành công', data.data))
       .catch(err => console.error(err))
     } catch (error) {
@@ -115,6 +127,7 @@ function Gathering() {
   };
   
   
+ if (userRole === 'gathering') {
   return (
     <div>
       <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -266,6 +279,9 @@ function Gathering() {
       </Grid>
     </div>
   );
+ } else {
+  return <div>You are not allow to this action</div>
+ }
 }
 
 export default Gathering;

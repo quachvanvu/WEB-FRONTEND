@@ -62,14 +62,31 @@ const LoginPage = () => {
         const response = await axios.post('http://localhost:1406/v1/auth/login', {
           email: email,
           password: password});
-        console.log(response.data)
         
-        const token = response.data.accessToken; 
-        localStorage.setItem('accessToken', token);
+        let userRole = response.data.validUser.role;
+        const accessToken = response.data.accessToken; 
+        const refreshToken = response.data.refreshToken;
+        window.localStorage.setItem('accessToken', accessToken);
+        window.localStorage.setItem('refreshToken', refreshToken);
+        
+        if(userRole === 'gather_manager') {
+          userRole = 'gathering'
+        } else if(userRole === 'tran_manager') {
+          userRole = 'transaction'
+        } else if (userRole === 'user') {
+          userRole = 'customer'
+        } else if (userRole === 'tran_employee') {
+          userRole = 'staffTransaction'
+        } else if (userRole === 'gather_employee') {
+          userRole = 'staffGathering'
+        }
+
+        window.localStorage.setItem('userRole', userRole)
 
         setFormError("Đăng nhập thành công");
         //console.log(response.data);
-        window.location.href = '/customer'; 
+        window.location.href = `/${userRole}`; 
+        
       } catch (error) {
         console.error(error);
         setFormError("Đăng nhập thất bại");
