@@ -35,6 +35,15 @@ function Boss() {
   const [accounts, setAccounts] = useState([]);
   const [showTable, setShowTable] = useState(false); // Thêm state mới
 
+  const accessToken = window.localStorage.getItem('accessToken');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'AccessToken': accessToken,
+  };
+
+  const userRole = window.localStorage.getItem('userRole');
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -52,12 +61,15 @@ function Boss() {
   };
 
   const handleLogout = () => {
+    window.localStorage.removeItem('accessToken');
+    window.localStorage.removeItem('refreshToken');
+    window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
 
   useEffect(() => {
     if (accountAnchorEl) {
-      axios.get('http://localhost:1406/v1/boss/manage')
+      axios.get('http://localhost:1406/v1/boss/manage', { headers })
         .then((data) => {
           const filteredAccounts = data.data.filter(
             (account) =>
@@ -114,6 +126,12 @@ function Boss() {
                 <Storage />
               </ListItemIcon>
               <ListItemText primary="Lãnh đạo công ty" />
+            </MenuItem>
+            <MenuItem onClick={handleAccountMenuOpen}>
+              <ListItemIcon>
+                <Storage />
+              </ListItemIcon>
+              <ListItemText primary="Quản lý tài khoản" />
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -202,9 +220,9 @@ function Boss() {
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
                         {account.role === 'tran_manager'
-                          ? 'Trưởng điểm giao dịch'
+                          ? 'Nhân viên điểm giao dịch'
                           : account.role === 'gather_manager'
-                          ? 'Trưởng điểm tập kết'
+                          ? 'Nhân viên điểm tập kết'
                           : ''}
                       </TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
