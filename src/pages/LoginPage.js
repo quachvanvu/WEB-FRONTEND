@@ -68,6 +68,7 @@ const LoginPage = () => {
         const refreshToken = response.data.refreshToken;
         window.localStorage.setItem('accessToken', accessToken);
         window.localStorage.setItem('refreshToken', refreshToken);
+        window.localStorage.setItem('userRole', userRole);
         
         if(userRole === 'gather_manager') {
           userRole = 'gathering'
@@ -81,7 +82,6 @@ const LoginPage = () => {
           userRole = 'staffGathering'
         }
 
-        window.localStorage.setItem('userRole', userRole)
 
         setFormError("Đăng nhập thành công");
         //console.log(response.data);
@@ -248,7 +248,7 @@ const LoginPage = () => {
                 >
                   {isRegistering ? "Đăng ký" : "Đăng nhập"}
                 </Button>
-                <p style={{ textAlign: "center" }}></p>
+                <p style={{ textAlign: "center", marginTop: "5px" }}></p>
               </form>
               {formError && (
                 <Typography variant="body2" color="error" align="center">
@@ -261,6 +261,7 @@ const LoginPage = () => {
                   color="primary"
                   fullWidth
                   onClick={handleRegisterClick}
+                  margin="10px 0px 0px 0px"
                 >
                   Đăng ký
                 </Button>

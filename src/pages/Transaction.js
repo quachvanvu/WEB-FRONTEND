@@ -33,6 +33,8 @@ function Transaction() {
 
   const userRole = window.localStorage.getItem('userRole');
 
+  console.log(userRole);
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -54,25 +56,6 @@ function Transaction() {
 
   const [accounts, setAccounts] = useState([]);
   const [newAccount, setNewAccount] = useState({ name: '', email: '', password: '' });
-
-  const fetchAccountsFromAPI = async () => {
-    try {
-      const response = await fetch('http://localhost:1406/v1/boss/manage', { headers});
-      if (response.ok) {
-        const data = await response.json();
-        const filteredAccounts = data.filter(account => account.role === 'tran_employee');
-        setAccounts(filteredAccounts.slice(0, 4));
-      } else {
-        console.error('Lỗi khi lấy danh sách tài khoản:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Lỗi khi lấy danh sách tài khoản:', error.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchAccountsFromAPI();
-  }, []);
 
   const handleAddAccount = async () => {
     const requestData = {

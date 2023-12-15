@@ -52,7 +52,7 @@ function StaffTransaction() {
     window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
-  if (userRole === 'staffTransaction') {
+  // if (userRole === 'staffTransaction') {
     return (
       <div>
         <AppBar position="static" 
@@ -178,9 +178,9 @@ function StaffTransaction() {
           </Grid>
       </div>
     );
-  } else {
-    return <div>You are not allow to this action</div>
-  }
+  // } else {
+  //   return <div>You are not allow to this action</div>
+  // }
 }
 
 export default StaffTransaction;
