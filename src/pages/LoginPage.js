@@ -64,6 +64,8 @@ const LoginPage = () => {
           password: password});
         
         let userRole = response.data.validUser.role;
+        let placeId = response.data.validUser.placeId;
+        window.localStorage.setItem('placeId', placeId)
         const accessToken = response.data.accessToken; 
         const refreshToken = response.data.refreshToken;
         window.localStorage.setItem('accessToken', accessToken);

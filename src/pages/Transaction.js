@@ -63,6 +63,7 @@ function Transaction() {
       email: newAccount.email,
       password: newAccount.password,
       role: "tran_employee",
+      placeId : "6554d12d2c07dd4087e973d1"
     };
 
     try {
