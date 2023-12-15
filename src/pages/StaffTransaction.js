@@ -25,6 +25,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined';
 import PrintIcon from '@mui/icons-material/Print';
 import ReceiptComponent from '../component/ReceiptComponent';
+import axios from 'axios';
 
 function StaffTransaction() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -100,27 +101,29 @@ function StaffTransaction() {
       receiverEmail: ''
     });
   };
-  const placeId = window.localStorage.getItem('placeId');
+  const tranPlaceId = window.localStorage.getItem('placeId');
   const handleFormSubmit = (event) => {
     event.preventDefault();
-    let newData = {... formData, placeId}
-    console.log(newData)
+    let newData = {...formData, tranPlaceId: tranPlaceId}
+    console.log(typeof newData);
 
-    fetch('http://localhost:1406/v1/tranEmployee/order', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(newData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('API response:', data);
-        console.log('thành công')
-        handleFormClose();
-      })
-      .catch((error) => {
-        console.error('API error:', error);
-        console.log("không thành công")
-      });
+    axios.post('http://localhost:1406/v1/tranEmployee/order', newData, headers)
+    .then(res => console.log(res))
+
+    // fetch('http://localhost:1406/v1/tranEmployee/order', {
+    //   method: 'POST',
+    //   body: newData,
+    // }, headers)
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     console.log('API response:', data);
+    //     console.log('thành công')
+    //     handleFormClose();
+    //   })
+    //   .catch((error) => {
+    //     console.error('API error:', error);
+    //     console.log("không thành công")
+    //   });
   };
 
   const handleLogout = () => {
@@ -129,8 +132,7 @@ function StaffTransaction() {
     window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
-
-  if (userRole === 'staffTransaction') {
+  // if (userRole === 'staffTransaction') {
     return (
       <div>
         <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -277,9 +279,9 @@ function StaffTransaction() {
         {showReceipt && <ReceiptComponent onClose={handlePrintClose} />}
       </div>
     );
-  } else {
-    return <div>Bạn không có quyền thực hiện thao tác này</div>;
-  }
+  // } else {
+  //   return <div>You are not allow to this action</div>
+  // }
 }
 
 export default StaffTransaction;
