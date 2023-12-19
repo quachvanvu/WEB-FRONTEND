@@ -70,12 +70,8 @@ function Boss() {
   useEffect(() => {
     if (accountAnchorEl) {
       axios.get('http://localhost:1406/v1/boss/manage', { headers })
-        .then((data) => {
-          const filteredAccounts = data.data.filter(
-            (account) =>
-              account.role === 'tran_manager' || account.role === 'gather_manager'
-          );
-          setAccounts(filteredAccounts);
+        .then((res) => {
+          setAccounts(res.data);
           setShowTable(true); // Khi có dữ liệu, hiển thị bảng
         })
         .catch((error) => {
@@ -86,7 +82,7 @@ function Boss() {
   }, [accountAnchorEl]);
 
   const handleDeleteAccount = (accountId) => {
-      axios.delete(`http://localhost:1406/v1/boss/manage/${accountId}`)
+      axios.delete(`http://localhost:1406/v1/boss/manage/${accountId}`, { headers })
         .then(() => {
           // Xóa tài khoản khỏi danh sách accounts
           const updatedAccounts = accounts.filter((account) => account._id !== accountId);
@@ -220,9 +216,9 @@ function Boss() {
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{account.email}</TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
                         {account.role === 'tran_manager'
-                          ? 'Nhân viên điểm giao dịch'
+                          ? 'Quản lý điểm giao dịch'
                           : account.role === 'gather_manager'
-                          ? 'Nhân viên điểm tập kết'
+                          ? 'Quản lý điểm tập kết'
                           : ''}
                       </TableCell>
                       <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>
