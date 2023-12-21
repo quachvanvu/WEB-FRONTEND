@@ -47,7 +47,7 @@ function StaffGathering() {
     window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
-  if (userRole === 'staffGathering') {
+  //if (userRole === 'staffGathering') {
     return (
       <div>
         <AppBar position="static" 
@@ -148,9 +148,9 @@ function StaffGathering() {
           </Grid>
       </div>
     );
-  } else {
-    return <div>You are not allow to this action</div>
-  }
+  //} else {
+    //return <div>You are not allow to this action</div>
+  //}//
 }
 
 export default StaffGathering;

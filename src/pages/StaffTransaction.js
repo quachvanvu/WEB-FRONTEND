@@ -34,7 +34,12 @@ function StaffTransaction() {
   const [xacnhanAnchorEl, setXacnhanAnchorEl] = useState(null);
   const [thongkeAnchorEl, setThongkeAnchorEl] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showFormGhinhan, setShowFormGhinhan] = useState(false);
+  const [outOrders, setOutOrders] = useState([]);
+  const [showFormHangGuiTapket, setShowFormHangGuiTapket] = useState(false);
+  const [showFormHangGuiNgươinhan, setShowFormHangGuiNgươinhan] = useState(false);
+
+
 
   const accessToken = window.localStorage.getItem('accessToken');
   const headers = {
@@ -55,11 +60,65 @@ function StaffTransaction() {
   };
 
   const handleGhinhanMenuOpen = () => {
-    setShowForm(true);
+    setShowFormGhinhan(true);
+    setShowFormHangGuiTapket(false);
   };
 
-  const handleTaodonMenuOpen = (event) => {
+  const handleTaodonMenuOpen = async (event) => {
     setTaodonAnchorEl(event.currentTarget);
+    setShowFormGhinhan(false);
+
+  };
+
+  const handleHangGuiTapketMenuOpen = async (event) => {
+    try {
+      const response = await axios.get('http://localhost:1406/v1/tranEmployee/allOutOrders', {
+        headers: {
+          'Content-Type': 'application/json',
+          'AccessToken': accessToken,
+          'placeId': tranPlaceId,
+        },
+      });
+      setOutOrders(response.data);
+      setShowFormHangGuiTapket(true);
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu:', error);
+      // Xử lý lỗi theo ý muốn của bạn
+    }
+  };
+
+  const sendOrdersToGatherPlace = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:1406/v1/tranEmployee/toGather',
+        outOrders,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'AccessToken': accessToken,
+            'placeid': tranPlaceId,
+          },
+        }
+      );
+  
+      console.log(response.data);
+      // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
+      alert('Gửi đơn hàng thành công');
+  
+      // Xóa bảng bằng cách cập nhật state
+      setOutOrders([]);
+    } catch (error) {
+      console.error('Lỗi khi gửi đơn hàng đến điểm tập kết:', error);
+      // Xử lý lỗi theo cách của bạn
+    }
+  };
+  
+  
+
+  const tableCellStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    textAlign: 'left',
   };
 
   const handlXacnhanMenuOpen = (event) => {
@@ -94,36 +153,22 @@ function StaffTransaction() {
   };
 
   const handleFormClose = () => {
-    setShowForm(false);
+    setShowFormGhinhan(false);
     setFormData({
       name: '',
       senderEmail: '',
       receiverEmail: ''
     });
   };
+
   const tranPlaceId = window.localStorage.getItem('placeId');
   const handleFormSubmit = (event) => {
     event.preventDefault();
     let newData = {...formData, tranPlaceId: tranPlaceId}
-    console.log(typeof newData);
+    console.log(newData);
 
     axios.post('http://localhost:1406/v1/tranEmployee/order', newData, headers)
     .then(res => console.log(res))
-
-    // fetch('http://localhost:1406/v1/tranEmployee/order', {
-    //   method: 'POST',
-    //   body: newData,
-    // }, headers)
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log('API response:', data);
-    //     console.log('thành công')
-    //     handleFormClose();
-    //   })
-    //   .catch((error) => {
-    //     console.error('API error:', error);
-    //     console.log("không thành công")
-    //   });
   };
 
   const handleLogout = () => {
@@ -132,7 +177,7 @@ function StaffTransaction() {
     window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
-  // if (userRole === 'staffTransaction') {
+   //if (userRole === 'staffTransaction') {
     return (
       <div>
         <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -170,7 +215,7 @@ function StaffTransaction() {
                     Tạo đơn
                   </Button>
                   <Menu anchorEl={taodonAnchorEl} open={Boolean(taodonAnchorEl)} onClose={handleSubMenuClose}>
-                    <MenuItem>
+                    <MenuItem onClick={handleHangGuiTapketMenuOpen}>
                       <ListItemIcon>
                         <Storage />
                       </ListItemIcon>
@@ -236,7 +281,7 @@ function StaffTransaction() {
             </nav>
           </Grid>
 
-          {showForm && (
+          {showFormGhinhan && (
             <Grid item xs={9} style={{ padding: '16px' }}>
               <div style={{ backgroundColor: '#fff', padding: '16px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
                 <Typography variant="h6" style={{ marginBottom: '16px', textAlign: 'center' }}>Ghi nhận hàng của người gửi</Typography>
@@ -274,14 +319,45 @@ function StaffTransaction() {
               </div>
             </Grid>
           )}
+          {showFormHangGuiTapket && (
+            <Grid item xs={9} style={{ padding: '16px' }}>
+            <div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', border: '1px solid #1a1817' }}>
+            <thead>
+              <tr style={{ background: '#f2f2f2' }}>
+                <th style={tableCellStyle}>Tên</th>
+                <th style={tableCellStyle}>Trạng thái</th>
+                <th style={tableCellStyle}>Ngày gửi</th>
+                <th style={tableCellStyle}>Email người gửi</th>
+                <th style={tableCellStyle}>Email người nhận</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outOrders.map((order) => (
+                <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
+                  <td style={tableCellStyle}>{order.name}</td>
+                  <td style={tableCellStyle}>{order.status}</td>
+                  <td style={tableCellStyle}>{order.dateSend}</td>
+                  <td style={tableCellStyle}>{order.senderEmail}</td>
+                  <td style={tableCellStyle}>{order.receiverEmail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Button onClick={sendOrdersToGatherPlace} variant="contained" color="primary">
+            Gửi đơn hàng đến điểm tập kết
+          </Button>
+            </div>
+          </Grid>
+          )}
         </Grid>
 
         {showReceipt && <ReceiptComponent onClose={handlePrintClose} />}
       </div>
     );
-  // } else {
-  //   return <div>You are not allow to this action</div>
-  // }
+   //} else {
+    //return <div>You are not allow to this action</div>
+   //}
 }
 
 export default StaffTransaction;

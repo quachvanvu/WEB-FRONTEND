@@ -33,8 +33,6 @@ function Transaction() {
 
   const userRole = window.localStorage.getItem('userRole');
 
-  console.log(userRole);
-
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -111,7 +109,7 @@ function Transaction() {
   };
   
 
-  if (userRole === 'transaction') {
+  // if (userRole === 'transaction') {
     return (
       <div>
         <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -246,9 +244,9 @@ function Transaction() {
         </Grid>
       </div>
     );
-  } else {
-    return <div>You are not allow to this action</div>
-  }
+  // } else {
+  //   return <div>You are not allow to this action</div>
+  // }
 }
 
 export default Transaction;
