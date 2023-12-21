@@ -35,6 +35,7 @@ function Gathering() {
   };
 
   const userRole = window.localStorage.getItem('userRole');
+  const placeId = window.localStorage.getItem('placeId');
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -72,11 +73,10 @@ function Gathering() {
 
   const fetchAccountsFromAPI = async () => {
     try {
-      await axios.get('http://localhost:1406/v1/boss/manage', { headers })
+      await axios.get('http://localhost:1406/v1/gatherManager/all', { headers })
         .then(data => {
           if(data.data) {
-            const filteredAccounts = data.data.filter(account => account.role === 'gather_employee');
-            setAccounts(filteredAccounts.slice(0, 4));
+            setAccounts(data.data)
           } else {
             console.error('Lỗi khi lấy danh sách tài khoản:', data.message);
           } 
@@ -92,11 +92,12 @@ function Gathering() {
 
   const handleAddAccount = async () => {
     try {
-      await axios.post('http://localhost:1406/v1/gaManager/register', {
+      await axios.post('http://localhost:1406/v1/gatherManager/register', {
         name: newAccount.name,
         email: newAccount.email,
         password: newAccount.password,
-        role: "gather_employee"
+        role: "gather_employee",
+        placeId: placeId
       }, { headers })
         .then(data => {
          console.log('Thêm tài khoản thành công', data.data)
@@ -113,8 +114,8 @@ function Gathering() {
   const handleDeleteAccount = async (index, accountId) => {
     try {
       // Gửi yêu cầu xóa đến API
-     await axios.delete(`http://localhost:1406/v1/gaManager/manage/${accountId}`, { headers })
-      .then( data => console.log('Xóa tài khoản thành công', data.data))
+     await axios.delete(`http://localhost:1406/v1/gatherManager/manage/${accountId}`, { headers })
+      .then( res => console.log('Xóa tài khoản thành công', res.data))
       .catch(err => console.error(err))
     } catch (error) {
       console.error('Lỗi khi xóa tài khoản:', error.message);
@@ -125,9 +126,19 @@ function Gathering() {
     updatedAccounts.splice(index, 1);
     setAccounts(updatedAccounts);
   };
+
+  // const handleDeleteAccount = async (index, accountId) => {
+  //   await axios.delete(`http://localhost:1406/v1/tranManager/manage/${accountId}`, {headers})
+  //   .then(res => console.log(res.data))
+  
+  //   // Cập nhật state để render lại danh sách tài khoản
+  //   const updatedAccounts = [...accounts];
+  //   updatedAccounts.splice(index, 1);
+  //   setAccounts(updatedAccounts);
+  // };
   
   
- if (userRole === 'gathering') {
+ if (userRole === 'gather_manager') {
   return (
     <div>
       <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>

@@ -19,6 +19,7 @@ import {
   TextField,
 } from '@mui/material';
 import { Home, AccountCircle, Assessment, ExitToApp, Add } from '@mui/icons-material';
+import axios from 'axios';
 
 function Transaction() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -32,6 +33,8 @@ function Transaction() {
   };
 
   const userRole = window.localStorage.getItem('userRole');
+
+  const placeId = window.localStorage.getItem('placeId');
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -53,54 +56,34 @@ function Transaction() {
   };
 
   const [accounts, setAccounts] = useState([]);
+
+  axios.get('http://localhost:1406/v1/tranManager/all', {headers})
+    .then(res => setAccounts(res.data))
+
+
   const [newAccount, setNewAccount] = useState({ name: '', email: '', password: '' });
 
+
   const handleAddAccount = async () => {
+
     const requestData = {
       name: newAccount.name,
       email: newAccount.email,
       password: newAccount.password,
       role: "tran_employee",
-      placeId : "6554d12d2c07dd4087e973d1"
+      placeId : placeId,
     };
 
-    try {
-      const response = await fetch('http://localhost:1406/v1/traManager/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      }, { headers });
-
-      if (response.ok) {
-        console.log('Thêm tài khoản thành công');
-      } else {
-        console.error('Lỗi khi thêm tài khoản:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Lỗi khi thêm tài khoản:', error.message);
-    }
+    await axios.post('http://localhost:1406/v1/tranManager/register', requestData, {headers})
+    .then(res => console.log(res.data))
 
     setAccounts([...accounts, newAccount]);
     setNewAccount({ name: '', email: '', password: '', role: '' });
   };
 
   const handleDeleteAccount = async (index, accountId) => {
-    try {
-      // Gửi yêu cầu xóa đến API
-      const response = await fetch(`http://localhost:1406/v1/traManager/manage/${accountId}`, {
-        method: 'DELETE',
-      }, {  headers });
-  
-      if (response.ok) {
-        console.log('Xóa tài khoản thành công');
-      } else {
-        console.error('Lỗi khi xóa tài khoản:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Lỗi khi xóa tài khoản:', error.message);
-    }
+    await axios.delete(`http://localhost:1406/v1/tranManager/manage/${accountId}`, {headers})
+    .then(res => console.log(res.data))
   
     // Cập nhật state để render lại danh sách tài khoản
     const updatedAccounts = [...accounts];
