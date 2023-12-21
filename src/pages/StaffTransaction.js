@@ -1,31 +1,31 @@
-import React, { useState } from 'react';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Button,
-  Menu,
-  MenuItem,
-  Grid,
-  ListItemIcon,
-  ListItemText,
-  TextField,
-} from '@mui/material';
-import {
-  Home,
   AccountCircle,
-  Storage,
-  Gavel,
-  ExitToApp,
   Assessment,
+  ExitToApp,
+  Gavel,
+  Home,
+  Storage,
 } from '@mui/icons-material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined';
 import PrintIcon from '@mui/icons-material/Print';
-import ReceiptComponent from '../component/ReceiptComponent';
+import {
+  AppBar,
+  Button,
+  Grid,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  TextField,
+  Toolbar,
+  Typography,
+} from '@mui/material';
 import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import ReceiptComponent from '../component/ReceiptComponent';
 
 function StaffTransaction() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -35,12 +35,15 @@ function StaffTransaction() {
   const [thongkeAnchorEl, setThongkeAnchorEl] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [allOrders, setAllOrders] = useState([]);
+  const [showAllGatherOrders, setShowAllGatherOrders] = useState(false);
 
   const accessToken = window.localStorage.getItem('accessToken');
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
   };
+  
 
   const userRole = window.localStorage.getItem('userRole');
 
@@ -102,13 +105,13 @@ function StaffTransaction() {
     });
   };
   const tranPlaceId = window.localStorage.getItem('placeId');
+   //const tranPlaceId='6554d12d2c07dd4087e973d1';
+ 
   const handleFormSubmit = (event) => {
     event.preventDefault();
     let newData = {...formData, tranPlaceId: tranPlaceId}
     console.log(typeof newData);
-
-    axios.post('http://localhost:1406/v1/tranEmployee/order', newData, headers)
-    .then(res => console.log(res))
+    console.log(newData,tranPlaceId);
 
     // fetch('http://localhost:1406/v1/tranEmployee/order', {
     //   method: 'POST',
@@ -124,6 +127,35 @@ function StaffTransaction() {
     //     console.error('API error:', error);
     //     console.log("không thành công")
     //   });
+    
+    axios.post("http://localhost:1406/v1/tranEmployee/order", newData,  headers  )
+    .then(res => {
+      
+      console.log(res);
+      console.log('Đã tạo đơn hàng thành công:', res.data);
+      setShowForm(false);
+      console.log('Đã tạo đơn hàng thành công');
+      console.log('API Response:', res);
+
+      // Kiểm tra mã phản hồi từ máy chủ
+      console.log('Status Code:', res.status);
+  
+      // Kiểm tra dữ liệu trả về từ máy chủ
+      console.log('Response Data:', res.data);
+    })
+    .catch(error => {
+      // Xử lý lỗi
+      console.error('API Error:', error);
+  
+      // Kiểm tra mã phản hồi từ máy chủ khi xảy ra lỗi
+      if (error.response) {
+        console.log('Error Response Data:', error.response.data);
+        console.log('Error Status Code:', error.response.status);
+      }
+  
+      console.log('Không thành công');
+    });
+    
   };
 
   const handleLogout = () => {
@@ -132,6 +164,72 @@ function StaffTransaction() {
     window.localStorage.removeItem('userRole');
     window.location.href = '/';
   };
+
+  useEffect(() => {
+    // Gọi API khi component được render
+    getAllOrders();
+  }, []);
+  const getOrderID='6554d12d2c07dd4087e973d1';
+
+  const getAllOrders = async () => {
+    try {
+      // Thay đổi URL API theo đúng địa chỉ của bạn
+      const response = await axios.get('http://localhost:1406/v1/tranEmployee/allInOrders', {
+        headers: {
+          placeId: getOrderID, // Thay đổi id nếu cần
+          
+        },
+      });
+
+      setAllOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
+
+  const sendToGather = async () => {
+    try {
+      // Thay đổi URL API theo đúng địa chỉ của bạn
+      const response = await axios.post('http://localhost:1406/v1/tranEmployee/recGather', {
+        placeId: '6554d12d2c07dd4087e973d1', // Thay đổi id nếu cần
+        orders: allOrders,
+      });
+
+      console.log('Result from sending to gather:', response.data);
+    } catch (error) {
+      console.error('Error sending to gather:', error);
+    }
+  };
+
+  const handleUpdateOrder = async (orderId, newStatus) => {
+    try {
+      // Gọi API cập nhật trạng thái
+      const response = await axios.patch(`http://localhost:1406/v1/tranEmployee/update/${orderId}`, { newStatus }, headers);
+
+      console.log('API Response:', response.data);
+
+      // Kiểm tra mã phản hồi từ máy chủ
+      console.log('Status Code:', response.status);
+
+      // Kiểm tra dữ liệu trả về từ máy chủ
+      console.log('Response Data:', response.data);
+
+      // Gọi lại hàm lấy tất cả đơn hàng sau khi cập nhật
+      getAllOrders();
+    } catch (error) {
+      console.error('API Error:', error);
+
+      // Xử lý lỗi nếu cần
+    }
+  };
+  
+  const handleUpdateOrderClick = (orderId, newStatus) => {
+    handleUpdateOrder(orderId, newStatus);
+  };
+
+  const handleConfirmGathering=()=>{
+    setShowAllGatherOrders(true);
+  }
   // if (userRole === 'staffTransaction') {
     return (
       <div>
@@ -189,12 +287,14 @@ function StaffTransaction() {
                     Xác nhận
                   </Button>
                   <Menu anchorEl={xacnhanAnchorEl} open={Boolean(xacnhanAnchorEl)} onClose={handleSubMenuClose}>
-                    <MenuItem>
+
+                    <MenuItem onClick={handleConfirmGathering}>
                       <ListItemIcon>
                         <Storage />
                       </ListItemIcon>
                       <ListItemText primary="Hàng về từ điểm tập kết" />
                     </MenuItem>
+
                     <MenuItem>
                       <ListItemIcon>
                         <Gavel />
@@ -269,10 +369,61 @@ function StaffTransaction() {
                   <div style={{ marginTop: '16px', textAlign: 'right' }}>
                     <Button type="submit" variant="contained" color="primary" style={{ marginRight: '8px' }}>Gửi</Button>
                     <Button type="button" variant="contained" onClick={handleFormClose}>Đóng</Button>
+
                   </div>
+                  <div>
+      
+    </div>
+   
                 </form>
+
+
               </div>
             </Grid>
+          )}
+
+          {showAllGatherOrders&&(
+             <Grid item xs={9} style={{ padding: '16px' }}>
+             <div style={{ backgroundColor: '#fff', padding: '16px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
+               <Typography variant="h6" style={{ marginBottom: '16px', textAlign: 'center' ,fontSize: '18px',}}>Hàng về từ điểm tập kết</Typography>
+              
+               <div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px',tableLayout: 'fixed',backgroundColor:'#EEEEEE' ,}}>
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' ,width: '50px'}}>STT</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' }}>Tên</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' }}>Email người gửi</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px',backgroundColor: '#007bff', color: '#fff' }}>Email người nhận</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px',backgroundColor: '#007bff', color: '#fff' }}>Ngày gửi</th>
+          </tr>
+        </thead>
+        <tbody>
+        {allOrders.map((order, index) => (
+              <tr key={index} style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: index % 2 === 0 ? '#f5f5f5' : '#fff' }}>
+                <td style={{textAlign: 'center'}}>{index + 1}</td>
+                <td style={{textAlign: 'center'}}>{order.name}</td>
+                <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
+                <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+                
+                 <div style={{ marginTop: '16px', textAlign: 'right' }}>
+                 <Button type="button" variant="contained" onClick={sendToGather}>Gửi đến điểm tập kết</Button>
+                   <Button type="button" variant="contained" onClick={handleFormClose}>Đóng</Button>
+
+                 </div>
+                 <div>
+   </div>
+
+
+
+             </div>
+           </Grid>
           )}
         </Grid>
 
