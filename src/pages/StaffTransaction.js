@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -26,25 +26,36 @@ import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined';
 import PrintIcon from '@mui/icons-material/Print';
 import ReceiptComponent from '../component/ReceiptComponent';
 import axios from 'axios';
+import {
+  // ... (other imports)
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'; 
 
 function StaffTransaction() {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [ginhanAnchorEl, setGinhanAnchorEl] = useState(null);
   const [taodonAnchorEl, setTaodonAnchorEl] = useState(null);
   const [xacnhanAnchorEl, setXacnhanAnchorEl] = useState(null);
-  const [thongkeAnchorEl, setThongkeAnchorEl] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showFormGhinhan, setShowFormGhinhan] = useState(false);
   const [outOrders, setOutOrders] = useState([]);
   const [showFormHangGuiTapket, setShowFormHangGuiTapket] = useState(false);
-  const [showFormHangGuiNgươinhan, setShowFormHangGuiNgươinhan] = useState(false);
+  const [statisticalData, setStatisticalData] = useState(null);
+  const [showStatisticalChart, setShowStatisticalChart] = useState(false);
 
 
 
   const accessToken = window.localStorage.getItem('accessToken');
+  const tranPlaceId = window.localStorage.getItem('placeId');
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
+    'placeId': tranPlaceId,
   };
 
   const userRole = window.localStorage.getItem('userRole');
@@ -67,7 +78,7 @@ function StaffTransaction() {
   const handleTaodonMenuOpen = async (event) => {
     setTaodonAnchorEl(event.currentTarget);
     setShowFormGhinhan(false);
-
+    setShowStatisticalChart(false);
   };
 
   const handleHangGuiTapketMenuOpen = async (event) => {
@@ -121,12 +132,58 @@ function StaffTransaction() {
     textAlign: 'left',
   };
 
-  const handlXacnhanMenuOpen = (event) => {
-    setXacnhanAnchorEl(event.currentTarget);
+  useEffect(() => {
+    async function fetchStatisticalData() {
+      try {
+        const response = await axios.get(
+          'http://localhost:1406/v1/tranEmployee/statistical',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'AccessToken': accessToken,
+              'placeId': tranPlaceId,
+            },
+          }
+        );
+        setStatisticalData(response.data);
+      } catch (error) {
+        console.error('Error fetching statistical data:', error);
+      }
+    }
+
+    fetchStatisticalData();
+  }, []); // Run once when component mounts
+
+  // Render statistical data in a bar chart
+  const renderStatisticalChart = () => {
+    if (statisticalData) {
+      const data = [
+        { name: 'Success', status: statisticalData.success },
+        { name: 'Failed', status: statisticalData.failed },
+      ];
+
+      return (
+        <ResponsiveContainer width="100%" height={600}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis tickCount={statisticalData.success + statisticalData.failed} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="status" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
   };
 
-  const handlThongkeMenuOpen = (event) => {
-    setThongkeAnchorEl(event.currentTarget);
+  const handleStatisticalClick = () => {
+    setShowFormHangGuiTapket(false);
+    setShowStatisticalChart(true);
+  };
+
+  const handlXacnhanMenuOpen = (event) => {
+    setXacnhanAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
@@ -134,10 +191,8 @@ function StaffTransaction() {
   };
 
   const handleSubMenuClose = () => {
-    setGinhanAnchorEl(null);
     setTaodonAnchorEl(null);
     setXacnhanAnchorEl(null);
-    setThongkeAnchorEl(null);
   };
 
   const handlePrintReceipt = () => {
@@ -161,7 +216,6 @@ function StaffTransaction() {
     });
   };
 
-  const tranPlaceId = window.localStorage.getItem('placeId');
   const handleFormSubmit = (event) => {
     event.preventDefault();
     let newData = {...formData, tranPlaceId: tranPlaceId}
@@ -249,27 +303,13 @@ function StaffTransaction() {
                   </Menu>
                 </li>
                 <li>
-                  <Button startIcon={<Assessment />} onClick={handlThongkeMenuOpen} style={{ color: '#fff', paddingTop: '30px' }}>
+                  <Button startIcon={<Assessment />} onClick={handleStatisticalClick} style={{ color: '#fff', paddingTop: '30px' }}>
                     Thống kê
                   </Button>
-                  <Menu anchorEl={thongkeAnchorEl} open={Boolean(thongkeAnchorEl)} onClose={handleSubMenuClose}>
-                    <MenuItem>
-                      <ListItemIcon>
-                        <Storage />
-                      </ListItemIcon>
-                      <ListItemText primary="Hàng chuyển thành công" />
-                    </MenuItem>
-                    <MenuItem>
-                      <ListItemIcon>
-                        <Gavel />
-                      </ListItemIcon>
-                      <ListItemText primary="Hàng chuyển không thành công" />
-                    </MenuItem>
-                  </Menu>
                 </li>
                 <li>
                   <Button startIcon={<PrintIcon />} onClick={handlePrintReceipt} style={{ color: '#fff', paddingTop: '30px' }}>
-                    In Giấy Biên Nhận
+                    Giấy Biên Nhận
                   </Button>
                 </li>
                 <li>
@@ -319,6 +359,7 @@ function StaffTransaction() {
               </div>
             </Grid>
           )}
+          
           {showFormHangGuiTapket && (
             <Grid item xs={9} style={{ padding: '16px' }}>
             <div>
@@ -349,6 +390,15 @@ function StaffTransaction() {
           </Button>
             </div>
           </Grid>
+          )}
+
+          {showStatisticalChart &&
+            (
+              <Grid item xs={9} style={{ padding: '16px' }}>
+              <div>
+            {renderStatisticalChart()}
+            </div>
+            </Grid>
           )}
         </Grid>
 
