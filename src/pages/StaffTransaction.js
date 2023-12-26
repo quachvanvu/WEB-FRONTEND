@@ -39,9 +39,11 @@ function StaffTransaction() {
   const [showAllGatherOrders, setShowAllGatherOrders] = useState(false);
 
   const accessToken = window.localStorage.getItem('accessToken');
+  const tranPlaceId = window.localStorage.getItem('placeId');
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
+    'placeId':tranPlaceId,
   };
   
 
@@ -104,7 +106,7 @@ function StaffTransaction() {
       receiverEmail: ''
     });
   };
-  const tranPlaceId = window.localStorage.getItem('placeId');
+  
    //const tranPlaceId='6554d12d2c07dd4087e973d1';
  
   const handleFormSubmit = (event) => {
@@ -166,32 +168,40 @@ function StaffTransaction() {
   };
 
   useEffect(() => {
-    // Gọi API khi component được render
+    
     getAllOrders();
   }, []);
   const getOrderID='6554d12d2c07dd4087e973d1';
 
   const getAllOrders = async () => {
     try {
-      // Thay đổi URL API theo đúng địa chỉ của bạn
-      const response = await axios.get('http://localhost:1406/v1/tranEmployee/allInOrders', {
-        headers: {
-          placeId: getOrderID, // Thay đổi id nếu cần
-          
-        },
-      });
-
-      setAllOrders(response.data);
+      axios.get('http://localhost:1406/v1/tranEmployee/allInOrders',{headers})
+      .then(
+        res=>{
+          setAllOrders(res.data);
+        }
+      )
+      /*const response = await axios.get('', 
+      {
+        headers
+      }
+      );*/
+      
+      /*
+      console.log(response.data);*/
     } catch (error) {
       console.error('Error fetching orders:', error);
     }
   };
+  
+ 
+  
 
   const sendToGather = async () => {
     try {
       // Thay đổi URL API theo đúng địa chỉ của bạn
       const response = await axios.post('http://localhost:1406/v1/tranEmployee/recGather', {
-        placeId: '6554d12d2c07dd4087e973d1', // Thay đổi id nếu cần
+        placeId: '6554d12d2c07dd4087e973d1',
         orders: allOrders,
       });
 
@@ -203,23 +213,22 @@ function StaffTransaction() {
 
   const handleUpdateOrder = async (orderId, newStatus) => {
     try {
-      // Gọi API cập nhật trạng thái
+      
       const response = await axios.patch(`http://localhost:1406/v1/tranEmployee/update/${orderId}`, { newStatus }, headers);
 
       console.log('API Response:', response.data);
 
-      // Kiểm tra mã phản hồi từ máy chủ
+      
       console.log('Status Code:', response.status);
 
-      // Kiểm tra dữ liệu trả về từ máy chủ
+      
       console.log('Response Data:', response.data);
 
-      // Gọi lại hàm lấy tất cả đơn hàng sau khi cập nhật
+      
       getAllOrders();
     } catch (error) {
       console.error('API Error:', error);
 
-      // Xử lý lỗi nếu cần
     }
   };
   
@@ -413,7 +422,7 @@ function StaffTransaction() {
     </div>
                 
                  <div style={{ marginTop: '16px', textAlign: 'right' }}>
-                 <Button type="button" variant="contained" onClick={sendToGather}>Gửi đến điểm tập kết</Button>
+                 <Button type="button" variant="contained" onClick={sendToGather}>Gửi vào kho </Button>
                    <Button type="button" variant="contained" onClick={handleFormClose}>Đóng</Button>
 
                  </div>
