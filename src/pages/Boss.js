@@ -60,6 +60,7 @@ function Boss() {
     setAccountAnchorEl(null);
   };
 
+
   const handleLogout = () => {
     window.localStorage.removeItem('accessToken');
     window.localStorage.removeItem('refreshToken');
@@ -91,6 +92,7 @@ function Boss() {
         .catch((error) => {
           console.error('Lỗi khi xóa tài khoản:', error);
         });
+      
   };
 
   return (
