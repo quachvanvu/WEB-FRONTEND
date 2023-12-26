@@ -58,7 +58,7 @@ function StaffTransaction() {
 
 
   const accessToken = window.localStorage.getItem('accessToken');
-  const tranPlaceId = window.localStorage.getItem('placeId');
+  const placeId = window.localStorage.getItem('placeId');
 
   const headers = {
     'Content-Type': 'application/json',
@@ -234,15 +234,14 @@ const handlXacnhanMenuOpen = (event) => {
     });
   };
 
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
-    let newData = {...formData, tranPlaceId: tranPlaceId}
-    console.log(newData);
+    let newData = {...formData, placeId: placeId}
 
-    axios.post('http://localhost:1406/v1/tranEmployee/order', newData, {headers})
+    await axios.post('http://localhost:1406/v1/tranEmployee/order', newData, {headers})
     .then(res => console.log(res))
+    .catch (err => console.log(err))
 
-   
   };
 
 const getAllOrders = async () => {
