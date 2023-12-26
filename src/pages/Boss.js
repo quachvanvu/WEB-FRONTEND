@@ -32,8 +32,12 @@ import axios from 'axios';
 function Boss() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
+  const [placeAnchorEl, setPlaceAnchorEl] = useState(null);
   const [accounts, setAccounts] = useState([]);
-  const [showTable, setShowTable] = useState(false); // Thêm state mới
+  const [showTable, setShowTable] = useState(false); 
+  const [places, setPlaces] = useState([]);
+  const [showTable1, setShowTable1] = useState(false); 
+
 
   const accessToken = window.localStorage.getItem('accessToken');
 
@@ -52,12 +56,17 @@ function Boss() {
     setAccountAnchorEl(event.currentTarget);
   };
 
+  const handlePlaceMenuOpen = (event) => {
+    setPlaceAnchorEl(event.currentTarget);
+  };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
   const handleSubMenuClose = () => {
     setAccountAnchorEl(null);
+    setPlaceAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -80,6 +89,20 @@ function Boss() {
         });
     }
   }, [accountAnchorEl]);
+
+  useEffect(() => {
+    if (placeAnchorEl) {
+        axios.get('http://localhost:1406/v1/boss/place', { headers })
+        .then((res) => {
+          setPlaces(res.data);
+          setShowTable1(true); // Khi có dữ liệu, hiển thị bảng
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+          setShowTable1(false); // Nếu có lỗi, ẩn bảng
+        });
+    }
+  }, [placeAnchorEl]);
 
   const handleDeleteAccount = (accountId) => {
       axios.delete(`http://localhost:1406/v1/boss/manage/${accountId}`, { headers })
@@ -123,12 +146,6 @@ function Boss() {
               </ListItemIcon>
               <ListItemText primary="Lãnh đạo công ty" />
             </MenuItem>
-            <MenuItem onClick={handleAccountMenuOpen}>
-              <ListItemIcon>
-                <Storage />
-              </ListItemIcon>
-              <ListItemText primary="Quản lý tài khoản" />
-            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
@@ -148,8 +165,9 @@ function Boss() {
               <li>
                 <Button
                   startIcon={<Settings />}
-                  onClick={handleMenuClose}
+                  onClick={handlePlaceMenuOpen}
                   style={{ color: '#fff', paddingTop: '30px' }}
+                  onClose = {handleSubMenuClose}
                 >
                   Quản lý hệ thống
                 </Button>
@@ -159,6 +177,7 @@ function Boss() {
                   startIcon={<AccountCircle />}
                   onClick={handleAccountMenuOpen}
                   style={{ color: '#fff', paddingTop: '30px' }}
+                  onClose = {handleSubMenuClose}
                 >
                   Quản lý tài khoản
                 </Button>
@@ -166,7 +185,6 @@ function Boss() {
               <li>
                 <Button
                   startIcon={<Assessment />}
-                  onClick={handleMenuClose}
                   style={{ color: '#fff', paddingTop: '30px' }}
                 >
                   Thống kê
@@ -227,6 +245,31 @@ function Boss() {
                         </IconButton>
                       </TableCell>
 
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {showTable1 && ( // Chỉ hiển thị bảng nếu showTable là true
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Name</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Address</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>Type</b></TableCell>
+                    <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}><b>ManagerEmail</b></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {places.map((place) => (
+                    <TableRow key={place._id}>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{place.name}</TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}>{place.address}</TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}> {place.type} </TableCell>
+                      <TableCell style={{ border: '1.5px solid #2d73eb', padding: '8px' }}> {place.managerEmail} </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

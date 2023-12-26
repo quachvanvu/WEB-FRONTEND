@@ -52,6 +52,7 @@ function StaffTransaction() {
 
   const accessToken = window.localStorage.getItem('accessToken');
   const tranPlaceId = window.localStorage.getItem('placeId');
+
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
@@ -163,7 +164,7 @@ function StaffTransaction() {
       ];
 
       return (
-        <ResponsiveContainer width="100%" height={600}>
+        <ResponsiveContainer width="30%" height={600}>
           <BarChart data={data}>
             <XAxis dataKey="name" />
             <YAxis tickCount={statisticalData.success + statisticalData.failed} />

@@ -21,17 +21,29 @@ import {
 } from '@mui/material';
 import { Home, AccountCircle, Assessment, ExitToApp, Add } from '@mui/icons-material';
 import axios from 'axios';
-
+import {
+  // ... (other imports)
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'; 
 function Gathering() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
-  const [statisticAnchorEl, setStatisticAnchorEl] = useState(null); // State mới cho menu "Thống kê"
+  const [statisticalData, setStatisticalData] = useState(null);
+  const [showStatisticalChart, setShowStatisticalChart] = useState(false); // State mới cho menu "Thống kê"
 
   const accessToken = window.localStorage.getItem('accessToken');
+  const tranPlaceId = window.localStorage.getItem('placeId');
 
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
+    'placeId': tranPlaceId,
   };
 
   const userRole = window.localStorage.getItem('userRole');
@@ -43,10 +55,7 @@ function Gathering() {
 
   const handleAccountMenuOpen = (event) => {
     setAccountAnchorEl(event.currentTarget);
-  };
-
-  const handleStatisticMenuOpen = (event) => { // Hàm để mở menu "Thống kê"
-    setStatisticAnchorEl(event.currentTarget);
+    setShowStatisticalChart(false);
   };
 
   const handleMenuClose = () => {
@@ -57,8 +66,54 @@ function Gathering() {
     setAccountAnchorEl(null);
   };
 
-  const handleStatisticMenuClose = () => { // Hàm để đóng menu "Thống kê"
-    setStatisticAnchorEl(null);
+  useEffect(() => {
+    async function fetchStatisticalData() {
+      try {
+        const response = await axios.get(
+          'http://localhost:1406/v1/gatherManager/statistical',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'AccessToken': accessToken,
+              'placeId': tranPlaceId,
+            },
+          }
+        );
+        setStatisticalData(response.data);
+      } catch (error) {
+        console.error('Error fetching statistical data:', error);
+      }
+    }
+
+    fetchStatisticalData();
+  }, []); // Run once when component mounts
+
+  // Render statistical data in a bar chart
+  const renderStatisticalChart = () => {
+    if (statisticalData) {
+      const data = [
+        { name: 'Sended', status: statisticalData.sended },
+        { name: 'Received', status: statisticalData.received },
+      ];
+
+      return (
+        <ResponsiveContainer width="30%" height={600}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis tickCount={statisticalData.sended + statisticalData.received} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="status" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
+  };
+
+  const handleStatisticalClick = () => {
+    setShowStatisticalChart(true);
+    setAccountAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -126,19 +181,9 @@ function Gathering() {
     updatedAccounts.splice(index, 1);
     setAccounts(updatedAccounts);
   };
-
-  // const handleDeleteAccount = async (index, accountId) => {
-  //   await axios.delete(`http://localhost:1406/v1/tranManager/manage/${accountId}`, {headers})
-  //   .then(res => console.log(res.data))
-  
-  //   // Cập nhật state để render lại danh sách tài khoản
-  //   const updatedAccounts = [...accounts];
-  //   updatedAccounts.splice(index, 1);
-  //   setAccounts(updatedAccounts);
-  // };
   
   
- if (userRole === 'gather_manager') {
+//  if (userRole === 'gather_manager') {
   return (
     <div>
       <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
@@ -190,24 +235,11 @@ function Gathering() {
               <li>
               <Button
               startIcon={<Assessment />}
-              onClick={handleStatisticMenuOpen} // Button để mở menu "Thống kê"
+              onClick={handleStatisticalClick} 
               style={{ color: '#fff', paddingTop: '30px' }}
             >
               Thống kê
             </Button>
-            <Menu
-              anchorEl={statisticAnchorEl}
-              keepMounted
-              open={Boolean(statisticAnchorEl)}
-              onClose={handleStatisticMenuClose} // Menu "Thống kê"
-            >
-              <MenuItem onClick={handleStatisticMenuClose}>
-                <ListItemText primary="Hàng đi" />
-              </MenuItem>
-              <MenuItem onClick={handleStatisticMenuClose}>
-                <ListItemText primary="Hàng đến" />
-              </MenuItem>
-            </Menu>
               </li>
               <li>
                 <Button
@@ -287,12 +319,22 @@ function Gathering() {
             </Box>
           </Grid>
         )}
+
+        {showStatisticalChart &&
+          (
+            <Grid item xs={9} style={{ padding: '16px' }}>
+            <div>
+          {renderStatisticalChart()}
+          </div>
+          </Grid>
+        )}
+
       </Grid>
     </div>
   );
- } else {
-  return <div>You are not allow to this action</div>
- }
+//  } else {
+//   return <div>You are not allow to this action</div>
+//  }
 }
 
 export default Gathering;

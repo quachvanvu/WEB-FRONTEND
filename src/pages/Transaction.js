@@ -20,16 +20,30 @@ import {
 } from '@mui/material';
 import { Home, AccountCircle, Assessment, ExitToApp, Add } from '@mui/icons-material';
 import axios from 'axios';
+import {
+  // ... (other imports)
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'; 
 
 function Transaction() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
+  const [statisticalData, setStatisticalData] = useState(null);
+  const [showStatisticalChart, setShowStatisticalChart] = useState(false);
 
   const accessToken = window.localStorage.getItem('accessToken');
+  const tranPlaceId = window.localStorage.getItem('placeId');
 
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
+    'placeId': tranPlaceId,
   };
 
   const userRole = window.localStorage.getItem('userRole');
@@ -42,11 +56,63 @@ function Transaction() {
 
   const handleAccountMenuOpen = (event) => {
     setAccountAnchorEl(event.currentTarget);
+    setShowStatisticalChart(false);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  useEffect(() => {
+    async function fetchStatisticalData() {
+      try {
+        const response = await axios.get(
+          'http://localhost:1406/v1/tranManager/statistical',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'AccessToken': accessToken,
+              'placeId': tranPlaceId,
+            },
+          }
+        );
+        setStatisticalData(response.data);
+      } catch (error) {
+        console.error('Error fetching statistical data:', error);
+      }
+    }
+
+    fetchStatisticalData();
+  }, []); // Run once when component mounts
+
+  // Render statistical data in a bar chart
+  const renderStatisticalChart = () => {
+    if (statisticalData) {
+      const data = [
+        { name: 'Sended', status: statisticalData.sended },
+        { name: 'Received', status: statisticalData.received },
+      ];
+
+      return (
+        <ResponsiveContainer width="30%" height={600}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis tickCount={statisticalData.sended + statisticalData.received} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="status" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
+  };
+
+  const handleStatisticalClick = () => {
+    setShowStatisticalChart(true);
+    setAccountAnchorEl(null);
+  };
+
   
   const handleLogout = () => {
     window.localStorage.removeItem('accessToken');
@@ -142,7 +208,7 @@ function Transaction() {
                   </Button>
                 </li>
                 <li>
-                  <Button startIcon={<Assessment />} style={{ color: '#fff', paddingTop: '30px' }}>
+                  <Button startIcon={<Assessment />} onClick={handleStatisticalClick} style={{ color: '#fff', paddingTop: '30px' }}>
                     Thống kê
                   </Button>
                 </li>
@@ -224,7 +290,17 @@ function Transaction() {
               </Box>
             </Grid>
           )}
+
+          {showStatisticalChart &&
+            (
+              <Grid item xs={9} style={{ padding: '16px' }}>
+              <div>
+            {renderStatisticalChart()}
+            </div>
+            </Grid>
+          )}
         </Grid>
+        
       </div>
     );
   // } else {
