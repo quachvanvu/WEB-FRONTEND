@@ -50,6 +50,8 @@ function Transaction() {
 
   const placeId = window.localStorage.getItem('placeId');
 
+  
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };

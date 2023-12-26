@@ -37,6 +37,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'; 
 
+
 function StaffTransaction() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [taodonAnchorEl, setTaodonAnchorEl] = useState(null);
@@ -48,6 +49,12 @@ function StaffTransaction() {
   const [statisticalData, setStatisticalData] = useState(null);
   const [showStatisticalChart, setShowStatisticalChart] = useState(false);
 
+  const [ginhanAnchorEl, setGinhanAnchorEl] = useState(null);
+  const [thongkeAnchorEl, setThongkeAnchorEl] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [allOrders, setAllOrders] = useState([]);
+  const [showAllGatherOrders, setShowAllGatherOrders] = useState(false);
+
 
 
   const accessToken = window.localStorage.getItem('accessToken');
@@ -56,7 +63,6 @@ function StaffTransaction() {
   const headers = {
     'Content-Type': 'application/json',
     'AccessToken': accessToken,
-    'placeId': tranPlaceId,
   };
 
   const userRole = window.localStorage.getItem('userRole');
@@ -82,17 +88,65 @@ function StaffTransaction() {
     setShowStatisticalChart(false);
   };
 
+
+const handlThongkeMenuOpen = (event) => {
+  setThongkeAnchorEl(event.currentTarget);
+};
+
+var handleMenuClose = () => {
+  setAnchorEl(null);
+};
+
+var handleSubMenuClose = () => {
+  setGinhanAnchorEl(null);
+  setTaodonAnchorEl(null);
+  setXacnhanAnchorEl(null);
+  setThongkeAnchorEl(null);
+  setTaodonAnchorEl(null);
+  setXacnhanAnchorEl(null);
+};
+
+var handlePrintReceipt = () => {
+  setShowReceipt(true);
+};
+
+var handlePrintClose = () => {
+  setShowReceipt(false);
+};
+
+var handleInputChange = (field) => (event) => {
+  setFormData({ ...formData, [field]: event.target.value });
+};
+
+// const handleUpdateOrderClick = (orderId, newStatus) => {
+//   handleUpdateOrder(orderId, newStatus);
+// };
+
+const handleConfirmGathering=()=>{
+  setShowAllGatherOrders(true);
+}
+
+const handleStatisticalClick = () => {
+  setShowFormHangGuiTapket(false);
+  setShowStatisticalChart(true);
+};
+
+const handlXacnhanMenuOpen = (event) => {
+  setXacnhanAnchorEl(event.currentTarget);
+};
+
+
+
+
   const handleHangGuiTapketMenuOpen = async (event) => {
     try {
-      const response = await axios.get('http://localhost:1406/v1/tranEmployee/allOutOrders', {
-        headers: {
-          'Content-Type': 'application/json',
-          'AccessToken': accessToken,
-          'placeId': tranPlaceId,
-        },
-      });
-      setOutOrders(response.data);
-      setShowFormHangGuiTapket(true);
+      await axios.get('http://localhost:1406/v1/tranEmployee/allOutOrders', {headers})
+        .then(res => {
+          setOutOrders(res.data)
+          setShowFormHangGuiTapket(true);
+        }
+        );
+      
     } catch (error) {
       console.error('Lỗi khi lấy dữ liệu:', error);
       // Xử lý lỗi theo ý muốn của bạn
@@ -105,11 +159,7 @@ function StaffTransaction() {
         'http://localhost:1406/v1/tranEmployee/toGather',
         outOrders,
         {
-          headers: {
-            'Content-Type': 'application/json',
-            'AccessToken': accessToken,
-            'placeid': tranPlaceId,
-          },
+          headers
         }
       );
   
@@ -124,8 +174,6 @@ function StaffTransaction() {
       // Xử lý lỗi theo cách của bạn
     }
   };
-  
-  
 
   const tableCellStyle = {
     border: '1px solid #ddd',
@@ -133,17 +181,14 @@ function StaffTransaction() {
     textAlign: 'left',
   };
 
+
   useEffect(() => {
     async function fetchStatisticalData() {
       try {
         const response = await axios.get(
           'http://localhost:1406/v1/tranEmployee/statistical',
           {
-            headers: {
-              'Content-Type': 'application/json',
-              'AccessToken': accessToken,
-              'placeId': tranPlaceId,
-            },
+            headers
           }
         );
         setStatisticalData(response.data);
@@ -178,35 +223,7 @@ function StaffTransaction() {
     return null;
   };
 
-  const handleStatisticalClick = () => {
-    setShowFormHangGuiTapket(false);
-    setShowStatisticalChart(true);
-  };
-
-  const handlXacnhanMenuOpen = (event) => {
-    setXacnhanAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSubMenuClose = () => {
-    setTaodonAnchorEl(null);
-    setXacnhanAnchorEl(null);
-  };
-
-  const handlePrintReceipt = () => {
-    setShowReceipt(true);
-  };
-
-  const handlePrintClose = () => {
-    setShowReceipt(false);
-  };
-
-  const handleInputChange = (field) => (event) => {
-    setFormData({ ...formData, [field]: event.target.value });
-  };
+  
 
   const handleFormClose = () => {
     setShowFormGhinhan(false);
@@ -222,9 +239,33 @@ function StaffTransaction() {
     let newData = {...formData, tranPlaceId: tranPlaceId}
     console.log(newData);
 
-    axios.post('http://localhost:1406/v1/tranEmployee/order', newData, headers)
+    axios.post('http://localhost:1406/v1/tranEmployee/order', newData, {headers})
     .then(res => console.log(res))
+
+   
   };
+
+const getAllOrders = async () => {
+  try {
+    await axios.get('http://localhost:1406/v1/tranEmployee/allInOrders', {headers})
+    .then(res => setAllOrders(res.data));
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+  }
+};
+
+
+const sendToGather = async () => {
+  try {
+    // Thay đổi URL API theo đúng địa chỉ của bạn
+    const response = await axios.post('http://localhost:1406/v1/tranEmployee/recGather', allOrders , { headers });
+    setAllOrders([])
+    console.log('Result from sending to gather:', response.data);
+  } catch (error) {
+    console.error('Error sending to gather:', error);
+  }
+};
+
 
   const handleLogout = () => {
     window.localStorage.removeItem('accessToken');
@@ -288,13 +329,15 @@ function StaffTransaction() {
                   <Button startIcon={<CheckCircleIcon />} onClick={handlXacnhanMenuOpen} style={{ color: '#fff', paddingTop: '30px' }}>
                     Xác nhận
                   </Button>
-                  <Menu anchorEl={xacnhanAnchorEl} open={Boolean(xacnhanAnchorEl)} onClose={handleSubMenuClose}>
-                    <MenuItem>
+                  <Menu anchorEl={xacnhanAnchorEl} open={Boolean(xacnhanAnchorEl)} onClose={handleSubMenuClose} onClick={getAllOrders}>
+
+                    <MenuItem onClick={handleConfirmGathering}>
                       <ListItemIcon>
                         <Storage />
                       </ListItemIcon>
                       <ListItemText primary="Hàng về từ điểm tập kết" />
                     </MenuItem>
+
                     <MenuItem>
                       <ListItemIcon>
                         <Gavel />
@@ -360,6 +403,50 @@ function StaffTransaction() {
               </div>
             </Grid>
           )}
+
+{showAllGatherOrders&&(
+             <Grid item xs={9} style={{ padding: '16px' }}>
+             <div style={{ backgroundColor: '#fff', padding: '16px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
+               <Typography variant="h6" style={{ marginBottom: '16px', textAlign: 'center' ,fontSize: '18px',}}>Hàng về từ điểm tập kết</Typography>
+              
+               <div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px',tableLayout: 'fixed',backgroundColor:'#EEEEEE' ,}}>
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' ,width: '50px'}}>STT</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' }}>Tên</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#007bff', color: '#fff' }}>Email người gửi</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px',backgroundColor: '#007bff', color: '#fff' }}>Email người nhận</th>
+            <th style={{ border: '1px solid #ddd', padding: '8px',backgroundColor: '#007bff', color: '#fff' }}>Ngày gửi</th>
+          </tr>
+        </thead>
+        <tbody>
+        {allOrders.length!==0 && allOrders.map((order, index) => (
+              <tr key={index} style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: index % 2 === 0 ? '#f5f5f5' : '#fff' }}>
+                <td style={{textAlign: 'center'}}>{index + 1}</td>
+                <td style={{textAlign: 'center'}}>{order.name}</td>
+                <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
+                <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+                
+                 <div style={{ marginTop: '16px', textAlign: 'right' }}>
+                 <Button type="button" variant="contained" onClick={sendToGather}>Gửi vào kho </Button>
+                   <Button type="button" variant="contained" onClick={handleFormClose}>Đóng</Button>
+
+                 </div>
+                 <div>
+   </div>
+
+
+
+             </div>
+           </Grid>
+          )}
           
           {showFormHangGuiTapket && (
             <Grid item xs={9} style={{ padding: '16px' }}>
@@ -375,7 +462,7 @@ function StaffTransaction() {
               </tr>
             </thead>
             <tbody>
-              {outOrders.map((order) => (
+              {outOrders.length !== 0 && outOrders.map((order) => (
                 <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
                   <td style={tableCellStyle}>{order.name}</td>
                   <td style={tableCellStyle}>{order.status}</td>
