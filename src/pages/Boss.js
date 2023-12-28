@@ -310,13 +310,13 @@ function Boss() {
           {showChart && statisticalData && (
             // Hiển thị biểu đồ nếu showChart và có dữ liệu thống kê
             <BarChart
-              width={600}
-              height={400}
+              width={800}
+              height={600}
               data={Object.entries(statisticalData).map(([key, value]) => ({ name: key, ...value }))}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
+              <YAxis interval={1} tickCount={5}/>
               <Tooltip />
               <Legend />
               <Bar dataKey="sended" fill="#8884d8" />

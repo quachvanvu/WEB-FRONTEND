@@ -35,6 +35,7 @@ function Customer() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [sendOrderAnchorEl, setSendOrderAnchorEl] = React.useState(null);
   const [receivedOrderAnchorEl, setReceivedOrderAnchorEl] = React.useState(null);
+  const [unconfimredAnchorE1, setUnconfimredAnchorE1] =  React.useState(null);
 
 
   const [sendOrder, setSendOrder] = useState([]);
@@ -42,6 +43,9 @@ function Customer() {
 
   const [receivedOrder, setReceivedOrder] = useState([]);
   const [showReceivedOrder, setShowReceivedOrder] = useState(false);
+
+  const [unconfimred, setUnconfimred] = useState([]);
+  const [showUnconfimred, setShowUnconfimred] = useState(false);
 
 
   
@@ -63,7 +67,7 @@ function Customer() {
     setSendOrderAnchorEl(event.currentTarget);
     setShowSendOrder(true);
     setShowReceivedOrder(false);
-
+    setShowUnconfimred(false);
   };
 
   useEffect(() => {
@@ -84,6 +88,7 @@ function Customer() {
     setReceivedOrderAnchorEl(event.currentTarget);
     setShowSendOrder(false);
     setShowReceivedOrder(true);
+    setShowUnconfimred(false);
   };
 
   useEffect(() => {
@@ -101,8 +106,52 @@ function Customer() {
     }
   }, [receivedOrderAnchorEl]);
 
+  const handleUnconfimred = (event) => {
+    setUnconfimredAnchorE1(event.currentTarget);
+    setShowSendOrder(false);
+    setShowReceivedOrder(false);
+    setShowUnconfimred(true);
+  }
+
+  useEffect(() => {
+    if (unconfimredAnchorE1) {
+        axios.get('http://localhost:1406/v1/user/allOrders', { headers })
+        .then((res) => {
+          setUnconfimred(res.data);
+          setShowUnconfimred(true); // Khi có dữ liệu, hiển thị bảng
+          console.log(res.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+          setShowUnconfimred(false); // Nếu có lỗi, ẩn bảng
+        });
+    }
+  }, [unconfimredAnchorE1]);
+
+  const confimrOrder = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:1406/v1/user/acceptOrder', {
+          orderId: unconfimred.map(order => order._id),
+        }, {headers}
+      );
+  
+      console.log(response.data);
+      // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
+      alert('xác nhận thành công');
+  
+      // Xóa bảng bằng cách cập nhật state
+      setUnconfimred([]);
+    } catch (error) {
+      console.error('Lỗi xác nhận đơn hàng', error);
+      // Xử lý lỗi theo cách của bạn
+    }
+  };
+
   const handleSubMenuClose = () => {
     setSendOrderAnchorEl(null);
+    setReceivedOrderAnchorEl(null);
+    setUnconfimredAnchorE1(null);
   };
   
   const handleLogout = () => {
@@ -158,7 +207,7 @@ function Customer() {
               </Button>
             </li>
             <li>
-              <Button startIcon={<OfflinePinOutlinedIcon />} 
+              <Button startIcon={<OfflinePinOutlinedIcon />} onClick={handleUnconfimred}
                 style={{ color : '#fff', paddingTop : '30px'}}
                 >
                 Xác nhận đơn hàng
@@ -228,6 +277,41 @@ function Customer() {
                 <td style={tableCellStyle}>{order.dateSend}</td>
                 <td style={tableCellStyle}>{order.senderEmail}</td>
                 <td style={tableCellStyle}>{order.receiverEmail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+          </div>
+        </Grid>
+        )}
+
+        {showUnconfimred && (
+          <Grid item xs={9} style={{ padding: '16px' }}>
+          <div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', border: '1px solid #1a1817' }}>
+          <thead>
+            <tr style={{ background: '#f2f2f2' }}>
+              <th style={tableCellStyle}>Tên</th>
+              <th style={tableCellStyle}>Trạng thái</th>
+              <th style={tableCellStyle}>Ngày gửi</th>
+              <th style={tableCellStyle}>Email người gửi</th>
+              <th style={tableCellStyle}>Email người nhận</th>
+              <th style={tableCellStyle}>Hành động</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {unconfimred.length !== 0 && unconfimred.map((order) => (
+              <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
+                <td style={tableCellStyle}>{order.name}</td>
+                <td style={tableCellStyle}>{order.status}</td>
+                <td style={tableCellStyle}>{order.dateSend}</td>
+                <td style={tableCellStyle}>{order.senderEmail}</td>
+                <td style={tableCellStyle}>{order.receiverEmail}</td>
+                <td style={tableCellStyle}>{<Button onClick={confimrOrder} variant="contained" color="primary">
+                  xác nhận
+                </Button>}</td>
               </tr>
             ))}
           </tbody>
