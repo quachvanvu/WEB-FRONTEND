@@ -23,6 +23,10 @@ import OfflinePinOutlinedIcon from '@mui/icons-material/OfflinePinOutlined';
 import ExitToApp from '@mui/icons-material/ExitToApp';
 import Home from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 
 const accessToken = window.localStorage.getItem('accessToken');
 
@@ -138,7 +142,8 @@ function Customer() {
   
       console.log(response.data);
       // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
-      alert('xác nhận thành công');
+      // alert('xác nhận thành công');
+      toast.success("Xác nhận thành công");
   
       // Xóa bảng bằng cách cập nhật state
       setUnconfimred([]);
@@ -162,6 +167,19 @@ function Customer() {
   };
   return (
     <div>
+    <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
+    <ToastContainer />
       <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
         <Toolbar>
           <IconButton color="inherit">

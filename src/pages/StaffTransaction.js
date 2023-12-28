@@ -37,6 +37,9 @@ import {
   ResponsiveContainer,
 } from 'recharts'; 
 import { async } from 'q';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 
 function StaffTransaction() {
@@ -45,9 +48,9 @@ function StaffTransaction() {
   const [xacnhanAnchorEl, setXacnhanAnchorEl] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showFormGhinhan, setShowFormGhinhan] = useState(false);
-  const [outOrders, setOutOrders] = useState([]);
-  const [showFormHangGuiTapket, setShowFormHangGuiTapket] = useState(false);
-  const [toUserOrders, setToUserOrders] = useState([]);
+  let [outOrders, setOutOrders] = useState([]);
+  let [showFormHangGuiTapket, setShowFormHangGuiTapket] = useState(false);
+  let [toUserOrders, setToUserOrders] = useState([]);
   const [showFormtoUserOrders, setShowFormtoUserOrders] = useState(false);
   const [statisticalData, setStatisticalData] = useState(null);
   const [showStatisticalChart, setShowStatisticalChart] = useState(false);
@@ -202,7 +205,8 @@ const handlXacnhanMenuOpen = (event) => {
   
       console.log(response.data);
       // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
-      alert('Gửi đơn hàng thành công');
+      // alert('Gửi đơn hàng thành công');
+      toast.success('Gửi đơn hàng thành công')
   
       // Xóa bảng bằng cách cập nhật state
       setOutOrders([]);
@@ -212,22 +216,22 @@ const handlXacnhanMenuOpen = (event) => {
     }
   };
 
-  const sendOrdersToUser = async () => {
+  const sendOrdersToUser = async (orderId) => {
     try {
-      const response = await axios.post(
-        'http://localhost:1406/v1/tranEmployee/toUser', {
-          orderId: toUserOrders.map(order => order._id),
-        }, {headers}
-      );
-  
-      console.log(response.data);
-      // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
-      alert('Gửi đơn hàng thành công');
-  
+      console.log(placeId, orderId);
+      await axios.post(
+        'http://localhost:1406/v1/tranEmployee/toUser', {orderId: orderId}, {headers}
+      ).then(res => {
+        console.log(res.data);
+      toast.success('Gửi đơn hàng thành công')
+      
+      toUserOrders.filter(order => order._id !== orderId)
+      setToUserOrders(toUserOrders);
+      })
       // Xóa bảng bằng cách cập nhật state
-      setToUserOrders([]);
     } catch (error) {
       console.error('Lỗi khi gửi đơn hàng đến người nhận:', error);
+      toast.error('Gửi đơn hàng thất bại')
       // Xử lý lỗi theo cách của bạn
     }
   };
@@ -296,8 +300,21 @@ const handlXacnhanMenuOpen = (event) => {
     let newData = {...formData, placeId: placeId}
 
     await axios.post('http://localhost:1406/v1/tranEmployee/order', newData, {headers})
-    .then(res => console.log(res))
-    .catch (err => console.log(err))
+    .then(res => {
+      console.log(res.data)
+      if (typeof res.data === 'object') {
+        toast.success("Ghi nhận thành công")
+        setFormData({
+          name: '',
+          senderEmail: '',
+          receiverEmail: ''
+        });
+      }
+    })
+    .catch (err => {
+      console.log(err)
+      toast.error("Ghi nhận thất bại")
+    })
 
   };
 
@@ -331,6 +348,19 @@ const sendToGather = async () => {
    //if (userRole === 'staffTransaction') {
     return (
       <div>
+         <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+       <ToastContainer />
         <AppBar position="static" style={{ backgroundColor: '#2196f3', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
           <Toolbar>
             <IconButton color="inherit">
@@ -391,13 +421,6 @@ const sendToGather = async () => {
                         <Storage />
                       </ListItemIcon>
                       <ListItemText primary="Hàng về từ điểm tập kết" />
-                    </MenuItem>
-
-                    <MenuItem>
-                      <ListItemIcon>
-                        <Gavel />
-                      </ListItemIcon>
-                      <ListItemText primary="Hàng gửi tới tay người nhận" />
                     </MenuItem>
                   </Menu>
                 </li>
@@ -557,7 +580,7 @@ const sendToGather = async () => {
                   <td style={tableCellStyle}>{order.dateSend}</td>
                   <td style={tableCellStyle}>{order.senderEmail}</td>
                   <td style={tableCellStyle}>{order.receiverEmail}</td>
-                  <td style={tableCellStyle}>{<Button onClick={sendOrdersToUser} variant="contained" color="primary">
+                  <td style={tableCellStyle}>{<Button onClick={() => sendOrdersToUser(order._id)} variant="contained" color="primary">
                   Gửi
                 </Button>}</td>
                 </tr>
