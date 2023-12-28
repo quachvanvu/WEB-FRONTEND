@@ -57,14 +57,22 @@ function Boss() {
 
   const handleAccountMenuOpen = (event) => {
     setAccountAnchorEl(event.currentTarget);
+    setShowTable1(false);
+    setShowChart(false);
+    setShowTable(true);
   };
 
   const handlePlaceMenuOpen = (event) => {
     setPlaceAnchorEl(event.currentTarget);
+    setShowTable1(true);
+    setShowChart(false);
+    setShowTable(false);
   };
 
   const handleStatisticsClick = () => {
     setShowChart(true);
+    setShowTable1(false);
+    setShowTable(false);
   };
 
   const handleMenuClose = () => {

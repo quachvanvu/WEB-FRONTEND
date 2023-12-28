@@ -24,27 +24,87 @@ import ExitToApp from '@mui/icons-material/ExitToApp';
 import Home from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
+const accessToken = window.localStorage.getItem('accessToken');
+
+const headers = {
+  'Content-Type': 'application/json',
+  'AccessToken': accessToken,
+};
+
 function Customer() {
-  const [data, setData] = useState([]);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+  const [sendOrderAnchorEl, setSendOrderAnchorEl] = React.useState(null);
+  const [receivedOrderAnchorEl, setReceivedOrderAnchorEl] = React.useState(null);
+
+
+  const [sendOrder, setSendOrder] = useState([]);
+  const [showSendOrder, setShowSendOrder] = useState(false);
+
+  const [receivedOrder, setReceivedOrder] = useState([]);
+  const [showReceivedOrder, setShowReceivedOrder] = useState(false);
+
+
   
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
-  };
-
-  const handleAccountMenuOpen = (event) => {
-    setStatusAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const handleSubMenuClose = () => {
-    setStatusAnchorEl(null);
+  const tableCellStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    textAlign: 'left',
   };
 
+  const handleSendOrder = (event) => {
+    setSendOrderAnchorEl(event.currentTarget);
+    setShowSendOrder(true);
+    setShowReceivedOrder(false);
+
+  };
+
+  useEffect(() => {
+    if (sendOrderAnchorEl) {
+        axios.get('http://localhost:1406/v1/user/send', { headers })
+        .then((res) => {
+          setSendOrder(res.data);
+          setShowSendOrder(true); // Khi có dữ liệu, hiển thị bảng
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+          setShowSendOrder(false); // Nếu có lỗi, ẩn bảng
+        });
+    }
+  }, [sendOrderAnchorEl]);
+
+  const handleReceivedOrder = (event) => {
+    setReceivedOrderAnchorEl(event.currentTarget);
+    setShowSendOrder(false);
+    setShowReceivedOrder(true);
+  };
+
+  useEffect(() => {
+    if (receivedOrderAnchorEl) {
+        axios.get('http://localhost:1406/v1/user/receive', { headers })
+        .then((res) => {
+          setReceivedOrder(res.data);
+          setShowReceivedOrder(true); // Khi có dữ liệu, hiển thị bảng
+          console.log(res.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+          setShowReceivedOrder(false); // Nếu có lỗi, ẩn bảng
+        });
+    }
+  }, [receivedOrderAnchorEl]);
+
+  const handleSubMenuClose = () => {
+    setSendOrderAnchorEl(null);
+  };
+  
   const handleLogout = () => {
     window.localStorage.removeItem('accessToken');
     window.localStorage.removeItem('refreshToken');
@@ -84,10 +144,24 @@ function Customer() {
         <nav>
           <ul>
             <li>
-              <Button startIcon={<OfflinePinOutlinedIcon />} onClick={handleAccountMenuOpen} 
+              <Button startIcon={<OfflinePinOutlinedIcon />} onClick={handleSendOrder} 
                 style={{ color : '#fff', paddingTop : '30px'}}
                 >
-                Trạng thái đơn hàng
+                Đơn hàng đã gửi
+              </Button>
+            </li>
+            <li>
+              <Button startIcon={<OfflinePinOutlinedIcon />}  onClick={handleReceivedOrder}
+                style={{ color : '#fff', paddingTop : '30px'}}
+                >
+                Đơn hàng đã nhận
+              </Button>
+            </li>
+            <li>
+              <Button startIcon={<OfflinePinOutlinedIcon />} 
+                style={{ color : '#fff', paddingTop : '30px'}}
+                >
+                Xác nhận đơn hàng
               </Button>
             </li>
             <li>
@@ -100,6 +174,68 @@ function Customer() {
           </ul>
         </nav>
         </Grid>
+
+        {showSendOrder && (
+          <Grid item xs={9} style={{ padding: '16px' }}>
+          <div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', border: '1px solid #1a1817' }}>
+          <thead>
+            <tr style={{ background: '#f2f2f2' }}>
+              <th style={tableCellStyle}>Tên</th>
+              <th style={tableCellStyle}>Trạng thái</th>
+              <th style={tableCellStyle}>Ngày gửi</th>
+              <th style={tableCellStyle}>Email người gửi</th>
+              <th style={tableCellStyle}>Email người nhận</th>
+        
+            </tr>
+          </thead>
+          <tbody>
+            {sendOrder.length !== 0 && sendOrder.map((order) => (
+              <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
+                <td style={tableCellStyle}>{order.name}</td>
+                <td style={tableCellStyle}>{order.status}</td>
+                <td style={tableCellStyle}>{order.dateSend}</td>
+                <td style={tableCellStyle}>{order.senderEmail}</td>
+                <td style={tableCellStyle}>{order.receiverEmail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+          </div>
+        </Grid>
+        )}
+
+        {showReceivedOrder && (
+          <Grid item xs={9} style={{ padding: '16px' }}>
+          <div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', border: '1px solid #1a1817' }}>
+          <thead>
+            <tr style={{ background: '#f2f2f2' }}>
+              <th style={tableCellStyle}>Tên</th>
+              <th style={tableCellStyle}>Trạng thái</th>
+              <th style={tableCellStyle}>Ngày gửi</th>
+              <th style={tableCellStyle}>Email người gửi</th>
+              <th style={tableCellStyle}>Email người nhận</th>
+        
+            </tr>
+          </thead>
+          <tbody>
+            {receivedOrder.length !== 0 && receivedOrder.map((order) => (
+              <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
+                <td style={tableCellStyle}>{order.name}</td>
+                <td style={tableCellStyle}>{order.status}</td>
+                <td style={tableCellStyle}>{order.dateSend}</td>
+                <td style={tableCellStyle}>{order.senderEmail}</td>
+                <td style={tableCellStyle}>{order.receiverEmail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+          </div>
+        </Grid>
+        )}
         </Grid>
     </div>
   );
