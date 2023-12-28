@@ -28,6 +28,7 @@ import {
   ExitToApp,
 } from '@mui/icons-material';
 import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 function Boss() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -37,6 +38,8 @@ function Boss() {
   const [showTable, setShowTable] = useState(false); 
   const [places, setPlaces] = useState([]);
   const [showTable1, setShowTable1] = useState(false); 
+  const [statisticalData, setStatisticalData] = useState(null);
+  const [showChart, setShowChart] = useState(false);
 
 
   const accessToken = window.localStorage.getItem('accessToken');
@@ -54,10 +57,22 @@ function Boss() {
 
   const handleAccountMenuOpen = (event) => {
     setAccountAnchorEl(event.currentTarget);
+    setShowTable1(false);
+    setShowChart(false);
+    setShowTable(true);
   };
 
   const handlePlaceMenuOpen = (event) => {
     setPlaceAnchorEl(event.currentTarget);
+    setShowTable1(true);
+    setShowChart(false);
+    setShowTable(false);
+  };
+
+  const handleStatisticsClick = () => {
+    setShowChart(true);
+    setShowTable1(false);
+    setShowTable(false);
   };
 
   const handleMenuClose = () => {
@@ -67,6 +82,7 @@ function Boss() {
   const handleSubMenuClose = () => {
     setAccountAnchorEl(null);
     setPlaceAnchorEl(null);
+    setStatisticalData(null);
   };
 
 
@@ -104,6 +120,16 @@ function Boss() {
         });
     }
   }, [placeAnchorEl]);
+
+  useEffect(() => {
+    axios.get('http://localhost:1406/v1/boss/statistical', { headers })
+      .then((res) => {
+        setStatisticalData(res.data);
+      })
+      .catch((error) => {
+        console.error('Lỗi khi truy xuất dữ liệu thống kê:', error);
+      });
+  }, []); // Chạy hiệu ứng này chỉ một lần khi thành phần được gắn kết
 
   const handleDeleteAccount = (accountId) => {
       axios.delete(`http://localhost:1406/v1/boss/manage/${accountId}`, { headers })
@@ -188,6 +214,8 @@ function Boss() {
                 <Button
                   startIcon={<Assessment />}
                   style={{ color: '#fff', paddingTop: '30px' }}
+                  onClick={handleStatisticsClick}
+                  onClose = {handleSubMenuClose}
                 >
                   Thống kê
                 </Button>
@@ -277,6 +305,23 @@ function Boss() {
                 </TableBody>
               </Table>
             </TableContainer>
+          )}
+
+          {showChart && statisticalData && (
+            // Hiển thị biểu đồ nếu showChart và có dữ liệu thống kê
+            <BarChart
+              width={600}
+              height={400}
+              data={Object.entries(statisticalData).map(([key, value]) => ({ name: key, ...value }))}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="sended" fill="#8884d8" />
+              <Bar dataKey="received" fill="#82ca9d" />
+            </BarChart>
           )}
         </Grid>
       </Grid>

@@ -36,6 +36,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'; 
+import { async } from 'q';
 
 
 function StaffTransaction() {
@@ -46,6 +47,8 @@ function StaffTransaction() {
   const [showFormGhinhan, setShowFormGhinhan] = useState(false);
   const [outOrders, setOutOrders] = useState([]);
   const [showFormHangGuiTapket, setShowFormHangGuiTapket] = useState(false);
+  const [toUserOrders, setToUserOrders] = useState([]);
+  const [showFormtoUserOrders, setShowFormtoUserOrders] = useState(false);
   const [statisticalData, setStatisticalData] = useState(null);
   const [showStatisticalChart, setShowStatisticalChart] = useState(false);
 
@@ -80,17 +83,27 @@ function StaffTransaction() {
   const handleGhinhanMenuOpen = () => {
     setShowFormGhinhan(true);
     setShowFormHangGuiTapket(false);
+    setShowStatisticalChart(false);
+    setShowFormtoUserOrders(false);
   };
 
   const handleTaodonMenuOpen = async (event) => {
     setTaodonAnchorEl(event.currentTarget);
     setShowFormGhinhan(false);
     setShowStatisticalChart(false);
+    setShowAllGatherOrders(false);
+    setShowFormtoUserOrders(false);
   };
 
 
 const handlThongkeMenuOpen = (event) => {
   setThongkeAnchorEl(event.currentTarget);
+  setShowFormGhinhan(false);
+  setShowStatisticalChart(true);
+  setShowFormHangGuiTapket(false);
+  setShowAllGatherOrders(false);
+  setShowFormtoUserOrders(false);
+
 };
 
 var handleMenuClose = () => {
@@ -124,12 +137,22 @@ var handleInputChange = (field) => (event) => {
 
 const handleConfirmGathering=()=>{
   setShowAllGatherOrders(true);
+  setShowFormGhinhan(false);
+  setShowStatisticalChart(false);
+  setShowFormHangGuiTapket(false);
+  setShowFormtoUserOrders(false);
+
 }
 
 const handleStatisticalClick = () => {
-  setShowFormHangGuiTapket(false);
+  setShowAllGatherOrders(false);
+  setShowFormGhinhan(false);
   setShowStatisticalChart(true);
+  setShowFormHangGuiTapket(false);
+  setShowFormtoUserOrders(false);
+
 };
+
 
 const handlXacnhanMenuOpen = (event) => {
   setXacnhanAnchorEl(event.currentTarget);
@@ -144,6 +167,7 @@ const handlXacnhanMenuOpen = (event) => {
         .then(res => {
           setOutOrders(res.data)
           setShowFormHangGuiTapket(true);
+          setShowFormtoUserOrders(false);
         }
         );
       
@@ -153,14 +177,27 @@ const handlXacnhanMenuOpen = (event) => {
     }
   };
 
+  const getHangGuiTayNguoiNhan = async (event) => {
+    try {
+      await axios.get('http://localhost:1406/v1/tranEmployee/allToUser', {headers})
+        .then(res => {
+          setToUserOrders(res.data)
+          setShowFormtoUserOrders(true);
+          setShowFormHangGuiTapket(false)
+          console.log(res.data);
+        }
+        );
+      
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu:', error);
+      // Xử lý lỗi theo ý muốn của bạn
+    }
+  }
+
   const sendOrdersToGatherPlace = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:1406/v1/tranEmployee/toGather',
-        outOrders,
-        {
-          headers
-        }
+        'http://localhost:1406/v1/tranEmployee/toGather', outOrders, {headers}
       );
   
       console.log(response.data);
@@ -171,6 +208,26 @@ const handlXacnhanMenuOpen = (event) => {
       setOutOrders([]);
     } catch (error) {
       console.error('Lỗi khi gửi đơn hàng đến điểm tập kết:', error);
+      // Xử lý lỗi theo cách của bạn
+    }
+  };
+
+  const sendOrdersToUser = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:1406/v1/tranEmployee/toUser', {
+          orderId: toUserOrders.map(order => order._id),
+        }, {headers}
+      );
+  
+      console.log(response.data);
+      // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
+      alert('Gửi đơn hàng thành công');
+  
+      // Xóa bảng bằng cách cập nhật state
+      setToUserOrders([]);
+    } catch (error) {
+      console.error('Lỗi khi gửi đơn hàng đến người nhận:', error);
       // Xử lý lỗi theo cách của bạn
     }
   };
@@ -256,7 +313,6 @@ const getAllOrders = async () => {
 
 const sendToGather = async () => {
   try {
-    // Thay đổi URL API theo đúng địa chỉ của bạn
     const response = await axios.post('http://localhost:1406/v1/tranEmployee/recGather', allOrders , { headers });
     setAllOrders([])
     console.log('Result from sending to gather:', response.data);
@@ -316,7 +372,7 @@ const sendToGather = async () => {
                       </ListItemIcon>
                       <ListItemText primary="Hàng gửi đến điểm tập kết" />
                     </MenuItem>
-                    <MenuItem>
+                    <MenuItem onClick={getHangGuiTayNguoiNhan}>
                       <ListItemIcon>
                         <Gavel />
                       </ListItemIcon>
@@ -475,6 +531,40 @@ const sendToGather = async () => {
           <Button onClick={sendOrdersToGatherPlace} variant="contained" color="primary">
             Gửi đơn hàng đến điểm tập kết
           </Button>
+            </div>
+          </Grid>
+          )}
+
+          {showFormtoUserOrders && (
+            <Grid item xs={9} style={{ padding: '16px' }}>
+            <div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', border: '1px solid #1a1817' }}>
+            <thead>
+              <tr style={{ background: '#f2f2f2' }}>
+                <th style={tableCellStyle}>Tên</th>
+                <th style={tableCellStyle}>Trạng thái</th>
+                <th style={tableCellStyle}>Ngày gửi</th>
+                <th style={tableCellStyle}>Email người gửi</th>
+                <th style={tableCellStyle}>Email người nhận</th>
+                <th style={tableCellStyle}>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {toUserOrders.length !== 0 && toUserOrders.map((order) => (
+                <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
+                  <td style={tableCellStyle}>{order.name}</td>
+                  <td style={tableCellStyle}>{order.status}</td>
+                  <td style={tableCellStyle}>{order.dateSend}</td>
+                  <td style={tableCellStyle}>{order.senderEmail}</td>
+                  <td style={tableCellStyle}>{order.receiverEmail}</td>
+                  <td style={tableCellStyle}>{<Button onClick={sendOrdersToUser} variant="contained" color="primary">
+                  Gửi
+                </Button>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
             </div>
           </Grid>
           )}
