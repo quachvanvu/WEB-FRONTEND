@@ -224,10 +224,9 @@ const handlXacnhanMenuOpen = (event) => {
       ).then(res => {
         console.log(res.data);
       toast.success('Gửi đơn hàng thành công')
-      
-      toUserOrders.filter(order => order._id !== orderId)
-      setToUserOrders(toUserOrders);
+      setToUserOrders([]);
       })
+      // setToUserOrders(toUserOrders);
       // Xóa bảng bằng cách cập nhật state
     } catch (error) {
       console.error('Lỗi khi gửi đơn hàng đến người nhận:', error);
@@ -505,7 +504,7 @@ const sendToGather = async () => {
                 <td style={{textAlign: 'center'}}>{order.name}</td>
                 <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
                 <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
-                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend.toLocaleString()}</td>
               </tr>
             ))}
         </tbody>
@@ -544,7 +543,7 @@ const sendToGather = async () => {
                 <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
                   <td style={tableCellStyle}>{order.name}</td>
                   <td style={tableCellStyle}>{order.status}</td>
-                  <td style={tableCellStyle}>{order.dateSend}</td>
+                  <td style={tableCellStyle}>{order.dateSend.toLocaleString()}</td>
                   <td style={tableCellStyle}>{order.senderEmail}</td>
                   <td style={tableCellStyle}>{order.receiverEmail}</td>
                 </tr>
@@ -577,7 +576,7 @@ const sendToGather = async () => {
                 <tr key={order._id} style={{ ':hover': { background: '#f5f5f5' } }}>
                   <td style={tableCellStyle}>{order.name}</td>
                   <td style={tableCellStyle}>{order.status}</td>
-                  <td style={tableCellStyle}>{order.dateSend}</td>
+                  <td style={tableCellStyle}>{order.dateSend.toLocaleString()}</td>
                   <td style={tableCellStyle}>{order.senderEmail}</td>
                   <td style={tableCellStyle}>{order.receiverEmail}</td>
                   <td style={tableCellStyle}>{<Button onClick={() => sendOrdersToUser(order._id)} variant="contained" color="primary">

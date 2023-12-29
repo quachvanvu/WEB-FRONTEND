@@ -154,7 +154,7 @@ const sendOderToGather = async () => {
   try {
    
     const response = await axios.post('http://localhost:1406/v1/gatherEmployee/toEnd', allSendToGatherOrders , { headers });
-    allSendToGatherOrders([])
+    setAllSendToGatherOrders([])
     console.log('Result from sending to gather:', response.data);
   } catch (error) {
     console.error('Error sending to gather:', error);
@@ -179,7 +179,7 @@ const getAllSendToTranOder = async () => {
 const sendOderToTransaction = async () => {
   try {
    
-    const response = await axios.post('http://localhost:1406/v1/gatherEmployee/allOrdersToTran', allSendToTranOrders, { headers });
+    const response = await axios.post('http://localhost:1406/v1/gatherEmployee/toTran', allSendToTranOrders, { headers });
     setAllSendToTranOrders([])
     console.log('Result from sending to gather:', response.data);
   } catch (error) {
@@ -313,7 +313,7 @@ const sendOderToTransaction = async () => {
                 <td style={{textAlign: 'center'}}>{order.name}</td>
                 <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
                 <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
-                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend.toLocaleString()}</td>
               </tr>
             ))}
         </tbody>
@@ -355,7 +355,7 @@ const sendOderToTransaction = async () => {
                 <td style={{textAlign: 'center'}}>{order.name}</td>
                 <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
                 <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
-                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend.toLocaleString()}</td>
               </tr>
             ))}
         </tbody>
@@ -397,7 +397,7 @@ const sendOderToTransaction = async () => {
                 <td style={{textAlign: 'center'}}>{order.name}</td>
                 <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
                 <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
-                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend.toLocaleString()}</td>
               </tr>
             ))}
         </tbody>
@@ -438,7 +438,7 @@ const sendOderToTransaction = async () => {
                 <td style={{textAlign: 'center'}}>{order.name}</td>
                 <td style={{textAlign: 'center'}}>{order.senderEmail}</td>
                 <td style={{textAlign: 'center'}}>{order.receiverEmail}</td>
-                <td style={{textAlign: 'center'}}>{order.dateSend}</td>
+                <td style={{textAlign: 'center'}}>{order.dateSend.toLocaleString()}</td>
               </tr>
             ))}
         </tbody>

@@ -132,17 +132,21 @@ function Customer() {
     }
   }, [unconfimredAnchorE1]);
 
-  const confimrOrder = async () => {
+  const confirmOrder = async (orderId, placeId) => {
     try {
-      const response = await axios.post(
-        'http://localhost:1406/v1/user/acceptOrder', {
-          orderId: unconfimred.map(order => order._id),
-        }, {headers}
-      );
-  
-      console.log(response.data);
+      // await axios.post(
+      //   'http://localhost:1406/v1/user/acceptOrder', {
+      //     orderId: orderId,
+      //     placeId: placeId
+      //   }, { headers }
+      // ).then(res => console.log(res.data))
       // Hiển thị thông báo thành công, có thể sử dụng thư viện thông báo hoặc cách khác
       // alert('xác nhận thành công');
+
+      await axios.post('http://localhost:1406/v1/user/acceptOrder', {
+        orderId: orderId, 
+        placeId: placeId
+      }, { headers}).then(res => console.log(res.data))
       toast.success("Xác nhận thành công");
   
       // Xóa bảng bằng cách cập nhật state
@@ -327,7 +331,7 @@ function Customer() {
                 <td style={tableCellStyle}>{order.dateSend}</td>
                 <td style={tableCellStyle}>{order.senderEmail}</td>
                 <td style={tableCellStyle}>{order.receiverEmail}</td>
-                <td style={tableCellStyle}>{<Button onClick={confimrOrder} variant="contained" color="primary">
+                <td style={tableCellStyle}>{<Button onClick={() => confirmOrder(order._id, order.placeId)} variant="contained" color="primary">
                   xác nhận
                 </Button>}</td>
               </tr>
